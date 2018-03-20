@@ -6,6 +6,7 @@ import pubg.radar.deserializer.*
 import pubg.radar.deserializer.channel.ActorChannel.Companion.actors
 import pubg.radar.deserializer.channel.ActorChannel.Companion.airDropLocation
 import pubg.radar.deserializer.channel.ActorChannel.Companion.visualActors
+import pubg.radar.sniffer.Sniffer.Companion.selfCoordsSniffer
 import pubg.radar.struct.*
 import pubg.radar.struct.Archetype.*
 import pubg.radar.struct.NetGUIDCache.Companion.guidCache
@@ -23,10 +24,10 @@ import pubg.radar.struct.cmd.CMD.propertyVectorQ
 import pubg.radar.struct.cmd.CMD.repMovement
 import pubg.radar.struct.cmd.PlayerStateCMD.selfID
 import java.util.concurrent.ConcurrentHashMap
+
 var selfDirection = 0f
 val selfCoords = Vector2()
 var selfAttachTo: Actor? = null
-
 
 object ActorCMD: GameListener {
   init {
@@ -37,11 +38,17 @@ object ActorCMD: GameListener {
     actorWithPlayerState.clear()
     playerStateToActor.clear()
     actorHealth.clear()
+    actorGroggyHealth.clear()
+    isGroggying.clear()
+    isReviving.clear()
   }
   
   val actorWithPlayerState = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
   val playerStateToActor = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
   val actorHealth = ConcurrentHashMap<NetworkGUID, Float>()
+  val actorGroggyHealth = ConcurrentHashMap<NetworkGUID, Float>()
+  val isGroggying = ConcurrentHashMap<NetworkGUID, Boolean>()
+  val isReviving = ConcurrentHashMap<NetworkGUID, Boolean>()
   
   fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
     with(bunch) {
@@ -94,7 +101,7 @@ object ActorCMD: GameListener {
               actors[actor.attachParent!!]
             else
               null
-          }
+          }          
           bugln { ",attachTo [$actor---------> $a ${guidCache.getObjectFromNetGUID(a)} ${actors[a]}" }
         }
         8 -> {
@@ -345,12 +352,17 @@ object ActorCMD: GameListener {
           val b = result
         }
         82 -> {
-          val result = propertyBool()
-          val b = result
+          val bIsGroggying=propertyBool()
+          val b = bIsGroggying
+          isGroggying[actor.netGUID] = bIsGroggying
+          //println("ActorCMD 82 bIsGroggying ? $b")
         }
         83 -> {
-          val result = propertyBool()
-          val b = result
+          val bIsReviving=propertyBool()
+          val b=bIsReviving
+          //actorGroggyHealth[actor.netGUID] = GroggyHealth
+          isReviving[actor.netGUID] = bIsReviving
+          
         }
         84 -> {
           val result = propertyBool()
@@ -401,13 +413,17 @@ object ActorCMD: GameListener {
         }
         96 -> {
           val GroggyHealth = propertyFloat()
+          actorGroggyHealth[actor.netGUID] = GroggyHealth
         }
         97 -> {
           val GroggyHealthMax = propertyFloat()
         }
+        /*
         98 -> {
           val BoostGauge = propertyFloat()
+          actor.boostGauge=BoostGauge
         }
+        */
         99 -> {
           val BoostGaugeMax = propertyFloat()
         }

@@ -1,4 +1,4 @@
-package wumo.pubg.struct.cmd
+package pubg.radar.struct.cmd
 
 import pubg.radar.*
 import pubg.radar.struct.*

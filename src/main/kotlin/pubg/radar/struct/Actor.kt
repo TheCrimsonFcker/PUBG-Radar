@@ -3,6 +3,7 @@ package pubg.radar.struct
 import com.badlogic.gdx.math.Vector3
 import pubg.radar.struct.Archetype.*
 import pubg.radar.struct.Archetype.Companion.fromArchetype
+import pubg.radar.util.DynamicArray
 import java.util.concurrent.ConcurrentHashMap
 
 enum class Archetype { //order matters, it affects the order of drawing
@@ -12,8 +13,9 @@ enum class Archetype { //order matters, it affects the order of drawing
   Grenade,
   TwoSeatBoat,
   SixSeatBoat,
+  ThreeSeatBike,
+  TwoSeatBike,
   TwoSeatCar,
-  ThreeSeatCar,
   FourSeatCar,
   SixSeatCar,
   Plane,
@@ -34,7 +36,9 @@ enum class Archetype { //order matters, it affects the order of drawing
       archetype.contains("DroppedItemGroup") -> DroopedItemGroup
       archetype.contains("Aircraft") -> Plane
       archetype.contains("Parachute") -> Parachute
-      archetype.contains(Regex("(bike|buggy|SideCar)", RegexOption.IGNORE_CASE)) -> TwoSeatCar
+      archetype.contains("sidecar", true) -> ThreeSeatBike
+      archetype.contains("bike", true) -> TwoSeatBike
+      archetype.contains("buggy", true) -> TwoSeatCar
       archetype.contains(Regex("(dacia|uaz|pickup)", RegexOption.IGNORE_CASE)) -> FourSeatCar
       archetype.contains("bus", true) -> SixSeatCar
       archetype.contains("van", true) -> SixSeatCar
@@ -73,8 +77,9 @@ class Actor(val netGUID: NetworkGUID, val archetypeGUID: NetworkGUID, val archet
   val isAPawn = when (Type) {
     TwoSeatBoat,
     SixSeatBoat,
+    TwoSeatBike,
+    ThreeSeatBike,
     TwoSeatCar,
-    ThreeSeatCar,
     FourSeatCar,
     SixSeatCar,
     Plane,

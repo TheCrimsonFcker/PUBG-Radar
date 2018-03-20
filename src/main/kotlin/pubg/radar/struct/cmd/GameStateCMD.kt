@@ -35,6 +35,7 @@ object GameStateCMD: GameListener {
     NumAliveTeams = 0
     RemainingTime = 0
     MatchElapsedMinutes = 0
+    NumTeams = 0
   }
   
   var TotalWarningDuration = 0f
@@ -54,7 +55,8 @@ object GameStateCMD: GameListener {
   var NumJoinPlayers = 0
   var NumAlivePlayers = 0
   var NumAliveTeams = 0
-  
+  var NumTeams = 0
+
   fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
     with(bunch) {
       when (waitingHandle) {
@@ -81,6 +83,8 @@ object GameStateCMD: GameListener {
         21 -> {
           val ElapsedTime = propertyInt()
           val b = ElapsedTime
+          //println("21 $b")
+
         }
         22 -> {
           val MatchId = propertyString()
@@ -96,8 +100,9 @@ object GameStateCMD: GameListener {
           val NumTeams = propertyInt()
           val b = NumTeams
         }
-        27 -> {
+        27 -> { // At Spawn Spot
           RemainingTime = propertyInt()
+          //println("27 $RemainingTime")
         }
         28 -> {
           MatchElapsedMinutes = propertyInt()
@@ -107,85 +112,95 @@ object GameStateCMD: GameListener {
           val b = bTimerPaused
         }
         30 -> {
-          NumJoinPlayers = propertyInt()
+          val bShowLastCircleMark = propertyBool()
         }
         31 -> {
-          NumAlivePlayers = propertyInt()
+          val bCanShowLastCircleMark = propertyBool()
         }
         32 -> {
+          NumJoinPlayers = propertyInt()
+        }
+        33 -> {
+          NumAlivePlayers = propertyInt()
+        }
+        34 -> {
           val NumAliveZombiePlayers = propertyInt()
           val b = NumAliveZombiePlayers
         }
-        33 -> {
+        35 -> {
           NumAliveTeams = propertyInt()
         }
-        34 -> {
+        36 -> {
           val NumStartPlayers = propertyInt()
           val b = NumStartPlayers
         }
-        35 -> {
+        37 -> {
           val NumStartTeams = propertyInt()
           val b = NumStartTeams
         }
-        36 -> {
+        38 -> {
           val pos = propertyVector()
           SafetyZonePosition.set(pos.x, pos.y)
         }
-        37 -> {
+        39 -> {
           SafetyZoneRadius = propertyFloat()
         }
-        38 -> {
+        40 -> {
           val pos = propertyVector()
           PoisonGasWarningPosition.set(pos.x, pos.y)
         }
-        39 -> {
+        41 -> {
           PoisonGasWarningRadius = propertyFloat()
         }
-        40 -> {
+        42 -> {
           val pos = propertyVector()
           RedZonePosition.set(pos.x, pos.y)
           
           val b = RedZonePosition
         }
-        41 -> {
+        43 -> {
           RedZoneRadius = propertyFloat()
           val b = RedZoneRadius
         }
-        42 -> {
+        44 -> {
           TotalReleaseDuration = propertyFloat()
           val b = TotalReleaseDuration
-        }
-        43 -> {
-          ElapsedReleaseDuration = propertyFloat()
-          val b = ElapsedReleaseDuration
-        }
-        44 -> {
-          TotalWarningDuration = propertyFloat()
+          //println("44 $b")
         }
         45 -> {
-          ElapsedWarningDuration = propertyFloat()
+          ElapsedReleaseDuration = propertyFloat()
+          val b = ElapsedReleaseDuration
+          //println("45 $b")
         }
         46 -> {
-          val bIsGasRelease = propertyBool()
+          TotalWarningDuration = propertyFloat()
+          //println("46 $b")
         }
         47 -> {
+          ElapsedWarningDuration = propertyFloat()
+          //println("47 $ElapsedWarningDuration")
+        }
+        48 -> {
+          val bIsGasRelease = propertyBool()
+        }
+        49 -> {
           val bIsTeamMatch = propertyBool()
           val b = bIsTeamMatch
         }
-        48 -> {
+        50 -> {
           val bIsZombieMode = propertyBool()
         }
-        49 -> {
+        51 -> {
           val pos = propertyVector()
           SafetyZoneBeginPosition.set(pos.x, pos.y)
         }
-        50 -> {
+        52 -> {
           SafetyZoneBeginRadius = propertyFloat()
         }
-        51 -> {
+        53 -> {
           val MatchStartType = propertyByte()
         }
-        52 -> return false
+        54 -> return false
         else -> return false
       }
       return true

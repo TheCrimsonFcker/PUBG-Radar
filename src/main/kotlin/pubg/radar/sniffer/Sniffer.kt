@@ -1,5 +1,6 @@
 package pubg.radar.sniffer
 
+import com.badlogic.gdx.math.Vector2
 import org.pcap4j.core.*
 import org.pcap4j.core.BpfProgram.BpfCompileMode.OPTIMIZE
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode.PROMISCUOUS
@@ -11,6 +12,7 @@ import pubg.radar.util.notify
 import java.io.*
 import java.io.File.separator
 import java.net.Inet4Address
+import java.nio.charset.Charset
 import java.util.*
 import javax.swing.*
 import javax.swing.JOptionPane.*
@@ -32,7 +34,8 @@ class DevDesc(val dev: PcapNetworkInterface, val address: Inet4Address) {
 
 enum class SniffOption {
   PortFilter,
-  PPTPFilter
+  PPTPFilter,
+  L2TPFilter
 }
 
 val settingHome = "${System.getProperty("user.home")}$separator.pubgradar"
@@ -49,6 +52,11 @@ class Sniffer {
     val nif: PcapNetworkInterface
     val localAddr: Inet4Address
     val sniffOption: SniffOption
+
+    val preSelfCoords = Vector2()
+    var preDirection = Vector2()
+    // var selfCoords = Vector2()
+    var selfCoordsSniffer = Vector2()
     
     init {
       register(this)
@@ -91,11 +99,14 @@ class Sniffer {
                                     !found || sniffOption == PortFilter)
       val routeIpFilter = JRadioButton("PPTP tunneling",
                                        found && sniffOption == PPTPFilter)
+      val l2tpFilter = JRadioButton("L2TP protocal", 
+                                    found && sniffOption == L2TPFilter)
       group.add(portFilter)
       group.add(routeIpFilter)
+      group.add(l2tpFilter)
       val netDevs = JComboBox(arrayChoices)
       if (found) netDevs.selectedItem = arrayChoices.firstOrNull { it.dev === nif }
-      val params = arrayOf(msg, netDevs, portFilter, routeIpFilter)
+      val params = arrayOf(msg, netDevs, portFilter, routeIpFilter, l2tpFilter)
       
       val option = showConfirmDialog(null, params, "Network interfaces", OK_CANCEL_OPTION)
       if (option == CANCEL_OPTION)
@@ -112,6 +123,7 @@ class Sniffer {
       when {
         portFilter.isSelected -> sniffOption = PortFilter
         routeIpFilter.isSelected -> sniffOption = PPTPFilter
+        l2tpFilter.isSelected -> sniffOption = L2TPFilter
       }
       
       try {
@@ -170,11 +182,29 @@ class Sniffer {
       val pppPkt = PppSelector.newPacket(raw, i, raw.size - i)
       return pppPkt.payload
     }
+
+    fun parseL2TPPacket(raw: ByteArray): Packet? {
+      // println(DatatypeConverter.printHexBinary(raw)+"  raw:"+raw.toString(Charset.defaultCharset()));
+      var i = 0
+      //control message return
+      val isControl = (raw[i] and 0b1000_0000.toByte()) != 0.toByte()
+      if(isControl){
+        return null;
+      }
+      val hasLength = (raw[i] and 0b0100_0000.toByte()) != 0.toByte()
+      if(!hasLength){
+        return null;
+      }
+      i+=8;
+      val pppPkt = PppSelector.newPacket(raw, i, raw.size - i)
+      return pppPkt.payload
+    }
     
     fun udp_payload(packet: Packet): UdpPacket? {
       return when (sniffOption) {
         PortFilter -> packet
         PPTPFilter -> parsePPTPGRE(packet[IpV4Packet::class.java].payload.rawData)
+        L2TPFilter -> parseL2TPPacket(packet[UdpPacket::class.java].payload.rawData)
         
       }?.get(UdpPacket::class.java)
     }
@@ -182,8 +212,9 @@ class Sniffer {
     fun sniffLocationOnline() {
       val handle = nif.openLive(snapLen, mode, timeout)
       val filter = when (sniffOption) {
-        PortFilter -> "udp portrange 7000-7999"
+        PortFilter -> "udp"
         PPTPFilter -> "ip[9]=47"
+        L2TPFilter -> "udp"
       }
       handle.setFilter(filter, OPTIMIZE)
       thread(isDaemon = true) {
@@ -193,11 +224,25 @@ class Sniffer {
             val ip = packet[IpPacket::class.java]
             val udp = udp_payload(packet) ?: return@loop
             val raw = udp.payload.rawData
-            if (ip.header.srcAddr == localAddr) {
-              if (udp.header.dstPort.valueAsInt() in 7000..7999)
+            val src = ip.header.srcAddr.toString()
+            
+            /*
+            // if ("192.168" in src) {
+              if (udp.header.dstPort.valueAsInt() in 7000..7999) {
                 proc_raw_packet(raw, false)
-            } else if (udp.header.srcPort.valueAsInt() in 7000..7999)
-              proc_raw_packet(raw, true)
+              //}
+            } else if (udp.header.srcPort.valueAsInt() in 7000..7999){
+                proc_raw_packet(raw, true)
+            }
+            */
+            /*
+            if (raw.size == 44) {
+                parseSelfLocation(raw)
+            */
+            if (udp.header.dstPort.valueAsInt() in 7000..7999)
+              proc_raw_packet(raw, false)
+            else if (udp.header.srcPort.valueAsInt() in 7000..7999)
+              proc_raw_packet(raw)
           } catch (e: Exception) {
           }
         }
@@ -206,21 +251,33 @@ class Sniffer {
     
     fun sniffLocationOffline(): Thread {
       return thread(isDaemon = true) {
-        val files = arrayOf("d:\\new05.pcap")
+        val files = arrayOf("C:\\Misc\\0.pcap")
         for (file in files) {
           val handle = Pcaps.openOffline(file)
           
           while (true) {
             try {
               val packet = handle.nextPacket ?: break
-              val ip = packet[IpPacket::class.java]
               val udp = udp_payload(packet) ?: continue
               val raw = udp.payload.rawData
-              if (ip.header.srcAddr == localAddr) {
-                if (udp.header.dstPort.valueAsInt() in 7000..7999)
-                  proc_raw_packet(raw, false)
-              } else if (udp.header.srcPort.valueAsInt() in 7000..7999)
-                proc_raw_packet(raw,true)
+              
+              /*
+              if (udp.header.dstPort.valueAsInt() in 7000..7999) {
+                proc_raw_packet(raw, false)
+                //println("In:\n$udp")
+              */
+              /*
+              if (raw.size == 44) {
+                parseSelfLocation(raw)
+              */
+              if (udp.header.dstPort.valueAsInt() in 7000..7999) {
+                proc_raw_packet(raw, false)
+                if (raw.size == 44) {
+                  parseSelfLocation(raw)
+                }
+              } else if (udp.header.srcPort.valueAsInt() in 7000..7999) {
+                proc_raw_packet(raw)
+              }
             } catch (e: Exception) {
             }
             Thread.sleep(1)
@@ -228,5 +285,23 @@ class Sniffer {
         }
       }
     }
+
+    private fun parseSelfLocation(raw: ByteArray): Boolean {
+      val len = raw.size
+      val flag1 = raw[len - check1]
+      val flag2 = raw[len - check2]
+      val flag3 = raw[len - check3]
+      if (flag1.check() && flag2.check() && flag3.check()) {
+        val _x = raw.toIntBE(len - check1 + 1, 3)
+        val _y = raw.toIntBE(len - check2 + 1, 3)
+        val _z = raw.toIntBE(len - check3 + 1, 3)
+        val x = 0.1250155302572263f * _x - 20.58662848625851f
+        val y = -0.12499267869373985f * _y + 2097021.7946571815f
+        val z = _z / 20.0f
+        selfCoordsSniffer = Vector2(x, y)
+        return true
+      }
+      return false
+    }    
   }
 }

@@ -24,7 +24,13 @@ object DroppedItemInteractionComponentCMD {
 //          println("attachParent:$attachParent")
         }
         4 -> {
-          return false
+          val arraySize=readUInt16()
+          var index=readIntPacked()
+          while (index != 0) {
+              val (netguid,obj)=readObject()
+//                  println("$netguid,$obj")
+              index=readIntPacked()
+          }
         }
         5 -> {
           val attachSocketName = readName()

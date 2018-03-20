@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.*
 import pubg.radar.struct.*
 import pubg.radar.struct.Archetype.*
 import pubg.radar.struct.Archetype.Plane
-import wumo.pubg.struct.cmd.TeamCMD
+import pubg.radar.struct.cmd.TeamCMD
 import java.util.*
 
 typealias cmdProcessor = (Actor, Bunch, NetGuidCacheObject?, Int, HashMap<String, Any?>) -> Boolean
@@ -79,14 +79,15 @@ object CMD {
       Grenade.name to APawnCMD::process,
       TwoSeatBoat.name to APawnCMD::process,
       SixSeatBoat.name to APawnCMD::process,
+      TwoSeatBike.name to APawnCMD::process,
+      ThreeSeatBike.name to APawnCMD::process,
       TwoSeatCar.name to APawnCMD::process,
-      ThreeSeatCar.name to APawnCMD::process,
       FourSeatCar.name to APawnCMD::process,
       SixSeatCar.name to APawnCMD::process,
       Plane.name to APawnCMD::process,
       Player.name to ActorCMD::process,
       Parachute.name to APawnCMD::process,
-      AirDrop.name to APawnCMD::process,
+      AirDrop.name to AirDropComponentCMD::process,
       PlayerState.name to PlayerStateCMD::process,
       Team.name to TeamCMD::process,
       "DroppedItemInteractionComponent" to DroppedItemInteractionComponentCMD::process,
