@@ -26,6 +26,9 @@ import pubg.radar.deserializer.channel.ActorChannel.Companion.corpseLocation
 import pubg.radar.deserializer.channel.ActorChannel.Companion.droppedItemLocation
 import pubg.radar.deserializer.channel.ActorChannel.Companion.visualActors
 import pubg.radar.deserializer.channel.ActorChannel.Companion.weapons
+import pubg.radar.http.PlayerProfile.Companion.completedPlayerInfo
+import pubg.radar.http.PlayerProfile.Companion.pendingPlayerInfo
+import pubg.radar.http.PlayerProfile.Companion.query
 import pubg.radar.sniffer.Sniffer.Companion.sniffOption
 import pubg.radar.struct.*
 import pubg.radar.struct.Archetype.*
@@ -91,6 +94,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     selfAttachTo = null
     airdropListX.clear()
     airdropListY.clear()
+    gameStartTime = System.currentTimeMillis()
   }
   
   override fun onGameOver() {
@@ -110,7 +114,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     config.setResizable(true)
     // config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
     // config.setBackBufferConfig(8, 8, 8, 8, 32, 0, 8)
-    config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 4)
+    config.setBackBufferConfig(8, 8, 8, 8, 32, 0, 4)
     config.setIdleFPS(60)
     Lwjgl3Application(this, config)
   }
@@ -820,19 +824,18 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         circle(inMapX, inMapY, airDropRadius * 2f, 10)
         color = airDropRedEdgeColor
         circle(inMapX, inMapY, airDropRadius * 1.3f, 10)
+      }
 
-        // Airdrop Notification (change to UID later)
-        val markX = (x / 200).toInt()
-        val markY = (y / 200).toInt()
-        if (airdropListX.contains(markX) && airdropListY.contains(markY)) {
-          //println(mark)
-        }
-        else {
-          airdropListX.add(markX)
-          airdropListY.add(markY)
-          alarmSound.play()
-        }
-    
+      // Airdrop Notification (change to UID later)
+      val markX = (x / 200).toInt()
+      val markY = (y / 200).toInt()
+      if (airdropListX.contains(markX) && airdropListY.contains(markY)) {
+        //println(mark)
+      }
+      else {
+        airdropListX.add(markX)
+        airdropListY.add(markY)
+        alarmSound.play()
       }
     }
   }
@@ -1098,7 +1101,6 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
       val name = playerNames[playerStateGUID] ?: return@forEach
       val teamNumber = teamNumbers[playerStateGUID] ?: 0
-      //val numKills = playerNumKills[playerStateGUID] ?: 0
 
       val equippedWeapons = actorHasWeapons[actor.netGUID]
       var weapon: String? = ""
@@ -1137,7 +1139,6 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
 
       val equippedHead = playerHead[playerStateGUID] ?: " "
       val equippedArmor = playerArmor[playerStateGUID] ?: " "
-      //println("$playerStateGUID = $equippedHead/$equippedArmor")
 
       // Disabled show items
       /*
@@ -1272,6 +1273,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       aimStartTime.remove(actorID)
   }
   
+  var gameStartTime = System.currentTimeMillis()
   fun ShapeRenderer.drawPlayer(pColor: Color?, actorInfo: renderInfo, drawSight: Boolean = true) {
     val zoom = camera.zoom
     val backgroundRadius = (playerRadius + 1500f) * zoom
@@ -1315,27 +1317,12 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     if (playerID == null) {
       color = BLACK
       circle(x, y, backgroundRadius, 10)    
-      color = selfColor
+      color = pColor
       circle(x, y, playerRadius, 10)  
     }
     
 
     // DRAW PLAYER
-    /*
-    if (actor?.isACharacter == false) { // In parachute or plane
-      color = BLACK
-      circle(x, y, backgroundRadius, 10)    
-      color = when {
-        isTeamMate(actor) -> teamColor
-        attach == null -> pColor
-        attach == selfID -> selfColor
-        //playerID == null -> selfColor
-        isTeamMate(actors[attach]) -> teamColor
-        else -> pColor
-      }
-      circle(x, y, playerRadius, 10)  
-    }
-    */ 
 
     if (actor != null && actor.isACharacter) {
       val health = actorHealth[actor.netGUID] ?: 100f
@@ -1349,6 +1336,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       val healthWidth = (health / 100.0 * width).toFloat()
 
       val playerStateGUID = actorWithPlayerState[actor.netGUID]
+      val numKills = playerNumKills[playerStateGUID] ?: 0
       val head = playerHead[playerStateGUID] ?: " "
       val armor = playerArmor[playerStateGUID] ?: " "
 
@@ -1424,23 +1412,37 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
 
       val playerIsGroggying = isGroggying[actor.netGUID] ?: false
       val playerIsReviving = isReviving[actor.netGUID] ?: false
+      //val currentTime = System.currentTimeMillis()
 
-      color = BLACK
-      circle(x, y, backgroundRadius, 10)
-      
+      val name = playerNames[playerStateGUID] ?: return
+      query(name)
+
       if (playerIsGroggying == true) {
         color = if (isTeamMate(actor))
           CYAN
-        else
-          Color(0.3f, 0.3f, 0.3f, 1f) // Grey
-        circle(x, y, playerRadius, 10)
+        else 
+          Color(0f, 0f, 0f, 0.55f)
+        circle(x, y, backgroundRadius, 10)
       } else if (playerIsReviving == true) {
+        color = BLACK
+        circle(x, y, backgroundRadius, 10)
         color = if (isTeamMate(actor))
           CYAN
         else
           ORANGE
         circle(x, y, playerRadius, 10)
+      } else if (completedPlayerInfo.containsKey(name)) {
+        val info = completedPlayerInfo[name]!!
+        if ((info.killDeathRatio > 3f || info.headshotKillRatio > 0.3f) && !isTeamMate(actor)) {
+          color = BLACK
+          circle(x, y, backgroundRadius, 10)
+          color = Color(1.0f, 0.1f, 1.0f, 1f)
+          circle(x, y, playerRadius, 10)
+          println("Name: $name, KD: ${info.killDeathRatio}, Headshot: ${info.headshotKillRatio}")
+        }
       } else {
+        color = BLACK
+        circle(x, y, backgroundRadius, 10)
         color = when {
           isTeamMate(actor) -> teamColor
           attach == null -> pColor

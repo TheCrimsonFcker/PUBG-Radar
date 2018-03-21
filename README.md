@@ -10,7 +10,9 @@ And this is a personal programme based on my usage habit just for fun, so I don'
 # Radar Unknown
 ![RadarUnknown](https://i.imgur.com/73drvF9.png)
 
-![PlayerInfo](https://i.imgur.com/xAUtNxB.png)
+(I prefer the neat shapes icons. If you like item icons, you can try [@Jerry1211's fork](https://github.com/Jerry1211/RadarProject).)
+
+![PlayerInfo](http://ww1.sinaimg.cn/large/006NGikrgy1fpl2nlkublj30jh0gnq52.jpg)
 
 (You know exactly how many shots you need to kill a enemy from healthbar color, so you can press 0 to hide gear info.)
 
@@ -36,7 +38,25 @@ Key | Function |
 Mouse Left Button | Drag map |
 Mouse Middle Button | Focus on player or Quick zoom-in/out |
 
-(I prefer neat shapes icons. If you like item icons, you can try [@Jerry1211's](https://github.com/Jerry1211/RadarProject) fork.)
+<br />
+
+# Changelog 
+
+__20180321__
+* Rewrote ```RetrievePlayerInfo.kt```. Now we can get player status from [pubg.op.gg](https://pubg.op.gg). 
+* Check aimbot hack suspects (KD > 3 or Headshot kill rate > 30%), and draw them in pink.
+
+__20180319__
+* Major Update: Airdrop chaser.
+
+__20180315__
+* Updated to compatible with latest game version 3.7.19.
+
+__20180311__
+* Redesigned player info display.
+
+__20180307__
+* Major Update: Window-edge display.
 
 <br />
 
@@ -55,24 +75,6 @@ Mouse Middle Button | Focus on player or Quick zoom-in/out |
 ![WindowEdge](https://i.imgur.com/0HUtbSj.png)
 
 * Show airdrops/enemies on window edge when they are out of screen but within certain range. ([Demo](https://gfycat.com/gifs/detail/FriendlyLonelyEider)).
-
-<br />
-
-# Changelog 
-
-__20180319__
-
-* Airdrop chaser update.
-
-__20180315__
-
-* Updated to compatible with latest game version 3.7.19.
-
-__20180311__
-* Redesigned player info display.
-
-__20180307__
-* Window edge display update.
 
 <br />
 

@@ -162,7 +162,7 @@ object PlayerStateCMD: GameListener {
         38 -> {
           val NumKills = propertyInt()
           playerNumKills[actor.netGUID] = NumKills
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} NumKills=$NumKills")
+          //println("${playerNames[actor.netGUID]}${actor.netGUID} NumKills=$NumKills")
         }
         39 -> {
           val TotalMovedDistanceMeter = propertyFloat()
@@ -179,7 +179,8 @@ object PlayerStateCMD: GameListener {
         }
         42 -> {
           val HeadShots = propertyInt()
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} HeadShots=$HeadShots")
+          //playerHeadshots[actor.netGUID] = HeadShots
+          //println("${playerNames[actor.netGUID]}${actor.netGUID} HeadShots=$HeadShots")
         }
         43 -> {//ReplicatedEquipableItems
           val arraySize = readUInt16()
