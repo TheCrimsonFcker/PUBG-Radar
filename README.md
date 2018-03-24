@@ -3,7 +3,7 @@ Big thanks to [@AiYinZiLeGong](https://github.com/AiYinZiLeGong) [@Jerry1211](ht
 
 I'm not a prof. programmer, just a noob learns to code. I don't even know the difference between _val_ and _var_. So feel free to optimize my shitty code.
 
-And this is a personal programme based on my usage habit just for fun, so I don't have the ability to slove all your problems or requests. But you can get help from [here](https://github.com/AiYinZiLeGong/PUBG-Radar/issues).
+And this is a personal programme based on my usage habit just for fun, so I don't have the ability to solve all your problems or requests. But you can get help from [here](https://github.com/AiYinZiLeGong/PUBG-Radar/issues).
 
 <br />
 
@@ -42,9 +42,14 @@ Mouse Middle Button | Focus on player or Quick zoom-in/out |
 
 # Changelog 
 
+__20180324__
+* Optimized the method to check aimbot hacker. 
+* Added teamate pin marker.
+* Added Flare Gun for event mode.
+
 __20180321__
 * Rewrote ```RetrievePlayerInfo.kt```. Now we can get player status from [pubg.op.gg](https://pubg.op.gg). 
-* Check aimbot hack suspects (KD > 3 or Headshot kill rate > 30%), and draw them in pink.
+* Check aimbot suspects (KD > 3 or Headshot kill rate > 30%), and draw them in pink.
 
 __20180319__
 * Major Update: Airdrop chaser.

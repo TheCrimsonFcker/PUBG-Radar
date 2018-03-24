@@ -60,8 +60,11 @@ import pubg.radar.struct.cmd.PlayerStateCMD.playerNumKills
 import pubg.radar.struct.cmd.PlayerStateCMD.selfID
 import pubg.radar.struct.cmd.PlayerStateCMD.selfStateID
 import pubg.radar.struct.cmd.PlayerStateCMD.teamNumbers
-import pubg.radar.util.tuple4
 import pubg.radar.struct.cmd.TeamCMD.team
+import pubg.radar.struct.cmd.TeamCMD.teamMapMarkerPosition
+import pubg.radar.struct.cmd.TeamCMD.teamShowMapMarker
+import pubg.radar.struct.cmd.TeamCMD.teamMemberNumber
+import pubg.radar.util.tuple4
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
@@ -930,6 +933,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
                 "k98" in items -> rareSniperColor
                 "m416" in items || "scar" in items || "m16" in items -> rareRifleColor
                 "dp28" in items || "ak" in items -> rareRifleColor
+                "FlareGun" in items -> rareFlareColor
 
                 "heal" in items -> healItemColor
                 "drink" in items -> drinkItemColor
@@ -1015,7 +1019,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
             color = finalColor
             rect(x - radius, y - radius, radius * 2, radius * 2)
           }
-        } else if ("scar" in items) {
+        } else if ("scar" in items || "FlareGun" in items) {
           if (filterWeapon == 1) {
             color = BLACK
             rectLine(x - backgroundRadius/1.4f, y - backgroundRadius/1.4f,
@@ -1103,39 +1107,84 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       val teamNumber = teamNumbers[playerStateGUID] ?: 0
 
       val equippedWeapons = actorHasWeapons[actor.netGUID]
-      var weapon: String? = ""
+      //var weapon: String? = ""
+      var weapon =  arrayOf("","")
       if (equippedWeapons != null) {
+        var i = 0
         for (w in equippedWeapons) {
+          if (i > 1) continue
           val a = weapons[w] ?: continue
           val result = a.archetype.pathName.split("_")
-          weapon += result[2].substring(4) + "\n"
+          weapon[i] += result[2].substring(4)
+          i++
         }
+        //println("${actor.netGUID}: $weapon")
       }
 
-      val weaponAbbr = when {
-        "HK416" in weapon.toString() -> "  M4"
-        "SCAR-L" in weapon.toString() -> "  SCR"
-        "M16A4" in weapon.toString() -> "  M16"
-        "AK47" in weapon.toString() -> "  AK"
-        "DP28" in weapon.toString() -> "  DP"
-        "Kar98" in weapon.toString() -> "  Kar98"
-        "SKS" in weapon.toString() -> "  SKS"
-        "Mini" in weapon.toString() -> "  Mini"
-        "Win94" in weapon.toString() -> "  Win"
-        "UMP" in weapon.toString() -> "  UMP"
-        "UZI" in weapon.toString() -> "  Uzi"
-        "Vector" in weapon.toString() -> "  Vec"
-        "Thompson" in weapon.toString() -> "  Tom"
-        "Saiga12" in weapon.toString() -> "  S12K"
-        "Berreta686" in weapon.toString() -> "  S686"
-        "Winchester" in weapon.toString() -> "  S1897"
-        "Crossbow" in weapon.toString() -> "  Xbow"
-        "G18" in weapon.toString() || "M1911" in weapon.toString() || "M9" in weapon.toString() ||
-        "Nagant" in weapon.toString() || "Rhino" in weapon.toString() || "Sawnoff" in weapon.toString() -> "  Pistol"
-        "Crowbar" in weapon.toString() || "Machete" in weapon.toString() || "Sickle" in weapon.toString() -> "  Melee"
-        weapon.toString() in "" -> ""
-        else -> "  $weapon"
+      val weaponAbbr1 = when {
+        "HK416" in weapon[0] -> "  M4"
+        "SCAR-L" in weapon[0] -> "  SCR"
+        "M16A4" in weapon[0] -> "  M16"
+        "AK47" in weapon[0] -> "  AK"
+        "DP28" in weapon[0] -> "  DP"
+        "AUG" in weapon[0] -> "  AUG"
+        "M249" in weapon[0] -> "  M249"
+        "Groza" in weapon[0] -> "  GRZ"
+        "AWM" in weapon[0] -> "  AWM"
+        "M24" in weapon[0] -> "  M24"
+        "MK14" in weapon[0] -> "  MK14"
+        "Kar98" in weapon[0] -> "  K98"
+        "SKS" in weapon[0] -> "  SKS"
+        "Mini" in weapon[0] -> "  Mini"
+        "Win94" in weapon[0] -> "  Win"
+        "UMP" in weapon[0] -> "  UMP"
+        "UZI" in weapon[0] -> "  Uzi"
+        "Vector" in weapon[0] -> "  Vec"
+        "Thompson" in weapon[0] -> "  Tom"
+        "Saiga12" in weapon[0] -> "  S12K"
+        "Berreta686" in weapon[0] -> "  686"
+        "Winchester" in weapon[0] -> "  1897"
+        "Crossbow" in weapon[0] -> "  Xbow"
+        "G18" in weapon[0] || "M1911" in weapon[0] || "M9" in weapon[0] ||
+        "Nagant" in weapon[0] || "Rhino" in weapon[0] || "Sawnoff" in weapon[0] -> "  Pis"
+        "Crowbar" in weapon[0] || "Machete" in weapon[0] || "Sickle" in weapon[0] -> ""
+        weapon[0] in "" -> ""
+        else -> "  ${weapon[0]}"
       }
+
+      val weaponAbbr2 = when {
+        "HK416" in weapon[1] -> " M4"
+        "SCAR-L" in weapon[1] -> " SCR"
+        "M16A4" in weapon[1] -> " M16"
+        "AK47" in weapon[1] -> " AK"
+        "DP28" in weapon[1] -> " DP"
+        "AUG" in weapon[1] -> " AUG"
+        "M249" in weapon[1] -> " M249"
+        "Groza" in weapon[1] -> " GRZ"
+        "AWM" in weapon[1] -> " AWM"
+        "M24" in weapon[1] -> " M24"
+        "MK14" in weapon[1] -> " MK14"
+        "Kar98" in weapon[1] -> " K98"
+        "SKS" in weapon[1] -> " SKS"
+        "Mini" in weapon[1] -> " Mini"
+        "Win94" in weapon[1] -> " Win"
+        "UMP" in weapon[1] -> " UMP"
+        "UZI" in weapon[1] -> " Uzi"
+        "Vector" in weapon[1] -> " Vec"
+        "Thompson" in weapon[1] -> " Tom"
+        "Saiga12" in weapon[1] -> " S12K"
+        "Berreta686" in weapon[1] -> " 686"
+        "Winchester" in weapon[1] -> " 1897"
+        "Crossbow" in weapon[1] -> " Xbow"
+        "G18" in weapon[1] || "M1911" in weapon[1] || "M9" in weapon[1] ||
+        "Nagant" in weapon[1] || "Rhino" in weapon[1] || "Sawnoff" in weapon[1] -> ""
+        "Crowbar" in weapon[1] || "Machete" in weapon[1] || "Sickle" in weapon[1] -> ""
+        weapon[1] in "" -> ""
+        else -> " $weapon[1]"
+      }
+
+
+      val weaponAbbr = weaponAbbr1 + weaponAbbr2
 
       val equippedHead = playerHead[playerStateGUID] ?: " "
       val equippedArmor = playerArmor[playerStateGUID] ?: " "
@@ -1167,11 +1216,27 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       layout.setText(nameFont, textBottom)
       val widthBottom = layout.width
 
+      
+      if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
+        val info = completedPlayerInfo[name]!!
+        if (!isTeamMate(actor) && (info.killDeathRatio > 3f || info.headshotKillRatio > 0.35f)) {
+          val hackerInfo = "${(info.headshotKillRatio*100).d(0)}% ${info.killDeathRatio.d(1)}"
+          layout.setText(nameFont, hackerInfo)
+          val widthHackerInfo = layout.width
+          for(i in -1..1)
+            for(j in -1..1) 
+              nameFontShadow.draw(spriteBatch, hackerInfo, 
+                                  sx - widthHackerInfo/2 + i, windowHeight - sy + 26 + j)
+          nameFont.draw(spriteBatch, hackerInfo, sx - widthHackerInfo/2, windowHeight - sy + 26)
+        }
+      }
+      
+
       if (showPlayerGear == 1) {
-      layout.setText(nameFont, equippedHead)
-      val widthLeft = layout.width
-      layout.setText(nameFont, equippedArmor)
-      val widthRight = layout.width
+        layout.setText(nameFont, equippedHead)
+        val widthLeft = layout.width
+        layout.setText(nameFont, equippedArmor)
+        val widthRight = layout.width
         for(i in -1..1)
           for(j in -1..1) {
             nameFontShadow.draw(spriteBatch, equippedHead, 
@@ -1292,8 +1357,50 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     val enemyDistance = (Vector2(x, y).sub(selfX, selfY).len() / 1000).toInt() * 10
     val (airx, airy) = Vector2(x, y).mapToWindow()
 
-    //if (actor?.netGUID == selfID) return
+    //if (actor?.netGUID == selfStateID) return  
     
+    // DRAW TEAM MARKER
+    if (isTeamMate(actor)) {
+      try {
+        var playerStateGUID = actorWithPlayerState[actor!!.netGUID]
+        if (playerStateGUID != null) {
+          playerStateGUID = NetworkGUID(playerStateGUID.toString().drop(18).dropLast(1).toInt() + 2)
+          val markerPosition = teamMapMarkerPosition[playerStateGUID]
+          if (markerPosition != null) {
+            val (markerX, markerY) = markerPosition
+            val number = teamMemberNumber[playerStateGUID]
+            val backgroundRadius = (markerRadius + 1500) * zoom
+            val markerRadius = markerRadius * zoom
+            color = BLACK
+            circle(markerX, markerY - markerRadius * 2, backgroundRadius, 16)
+            triangle(markerX - markerRadius / 2 * 1.732f - 2100 * zoom, markerY - markerRadius * 1.5f,
+                     markerX + markerRadius / 2 * 1.732f + 2100 * zoom, markerY - markerRadius * 1.5f,
+                     markerX , markerY + 2200 * zoom)
+            color = when {
+              number == 1 -> markerColor1
+              number == 2 -> markerColor2
+              number == 3 -> markerColor3
+              number == 4 -> markerColor4
+              number == 5 -> markerColor5
+              number == 6 -> markerColor6
+              number == 7 -> markerColor7
+              number == 8 -> markerColor8
+              else -> BLACK
+            }
+            circle(markerX, markerY - markerRadius * 2, markerRadius, 16)
+            triangle(markerX - markerRadius, markerY - markerRadius * 2,
+                     markerX + markerRadius, markerY - markerRadius * 2,
+                     markerX , markerY)
+            color = BLACK
+            circle(markerX, markerY - markerRadius * 2, markerRadius / 3 , 32)
+          }
+        }
+      } catch (e: Exception) { 
+        //println("drawPlayer error")
+      }
+    }
+
+
     if (drawSight) {
       if (playerID == null) {
         val dirVector = dirUnitVector.cpy().rotate(dir).scl(directionRadius * 10)
@@ -1313,147 +1420,170 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       }
     }
 
-    // DRAW SELF
-    if (playerID == null) {
-      color = BLACK
-      circle(x, y, backgroundRadius, 10)    
-      color = pColor
-      circle(x, y, playerRadius, 10)  
-    }
+    try {
+      // DRAW SELF
+      if (playerID == null) {
+        color = BLACK
+        circle(x, y, backgroundRadius, 10)    
+        color = pColor
+        circle(x, y, playerRadius, 10)  
+      }
     
 
-    // DRAW PLAYER
+      // DRAW PLAYER
 
-    if (actor != null && actor.isACharacter) {
-      val health = actorHealth[actor.netGUID] ?: 100f
-      val groggyHealth = actorGroggyHealth[actor.netGUID] ?: 101f
-      
-      val width = healthBarWidth * zoom
-      val widthBackground = (healthBarWidth + 2000) * zoom
-      val height = healthBarHeight * zoom
-      val heightBackground = (healthBarHeight + 2000) * zoom
-      val positonY = y + playerRadius + heightBackground / 2
-      val healthWidth = (health / 100.0 * width).toFloat()
+      if (actor != null && actor.isACharacter) {
+        val health = actorHealth[actor.netGUID] ?: 100f
+        val groggyHealth = actorGroggyHealth[actor.netGUID] ?: 101f
+        
+        val width = healthBarWidth * zoom
+        val widthBackground = (healthBarWidth + 2000) * zoom
+        val height = healthBarHeight * zoom
+        val heightBackground = (healthBarHeight + 2000) * zoom
+        val positonY = y + playerRadius + heightBackground / 2
+        val healthWidth = (health / 100.0 * width).toFloat()
 
-      val playerStateGUID = actorWithPlayerState[actor.netGUID]
-      val numKills = playerNumKills[playerStateGUID] ?: 0
-      val head = playerHead[playerStateGUID] ?: " "
-      val armor = playerArmor[playerStateGUID] ?: " "
+        val playerStateGUID = actorWithPlayerState[actor.netGUID]
+        val numKills = playerNumKills[playerStateGUID] ?: 0
+        val head = playerHead[playerStateGUID] ?: " "
+        val armor = playerArmor[playerStateGUID] ?: " "
 
-      color = BLACK
-      rectLine(x - widthBackground / 2 , positonY, x + widthBackground / 2, positonY, heightBackground)
-      
-      if ("3" in armor) {
-        if ("3" in head) {
-          color = when {
-            health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
-            health > 57f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot by kar98
-            health > 38f -> YELLOW                            // 3 bodyshots
-            health > 19f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        } else {
-          color = when {
-            health > 57f -> Color(0.16f, 0.86f, 0.16f, 1f)    
-            health > 38f -> YELLOW                            // 3 bodyshots
-            health > 19f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        }
-      } else if ("2" in armor) {
-        if ("3" in head) {
-          color = when {
-            health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
-            health > 78f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot
-            health > 52f -> YELLOW                            // 3 bodyshots
-            health > 26f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        } else {
-          color = when {
-            health > 78f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot
-            health > 52f -> YELLOW                            // 3 bodyshots
-            health > 26f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        }
-      } else if ("1" in armor) {
-        if ("3" in head) {
-          color = when {
-            health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
-            health > 60f -> YELLOW                            // 3 bodyshots
-            health > 30f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        } else {
-          color = when {
-            health > 84f -> Color(0.16f, 0.86f, 0.16f, 1f)    
-            health > 60f -> YELLOW                            // 3 bodyshots
-            health > 30f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        }
-      } else if (" " in armor) {
-        if ("3" in head) {
-          color = when {
-            health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
-            health > 44f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        } else {
-          color = when {
-            health > 88f -> Color(0.16f, 0.86f, 0.16f, 1f)    
-            health > 44f -> ORANGE                            // 2 bodyshots
-            else -> RED                                       // 1 bodyshot
-          }
-        }
-      }
-      rectLine(x - width / 2, positonY, x - width / 2 + healthWidth, positonY, height)
-
-      val playerIsGroggying = isGroggying[actor.netGUID] ?: false
-      val playerIsReviving = isReviving[actor.netGUID] ?: false
-      //val currentTime = System.currentTimeMillis()
-
-      val name = playerNames[playerStateGUID] ?: return
-      query(name)
-
-      if (playerIsGroggying == true) {
-        color = if (isTeamMate(actor))
-          CYAN
-        else 
-          Color(0f, 0f, 0f, 0.55f)
-        circle(x, y, backgroundRadius, 10)
-      } else if (playerIsReviving == true) {
         color = BLACK
-        circle(x, y, backgroundRadius, 10)
-        color = if (isTeamMate(actor))
-          CYAN
-        else
-          ORANGE
-        circle(x, y, playerRadius, 10)
-      } else if (completedPlayerInfo.containsKey(name)) {
-        val info = completedPlayerInfo[name]!!
-        if ((info.killDeathRatio > 3f || info.headshotKillRatio > 0.3f) && !isTeamMate(actor)) {
+        rectLine(x - widthBackground / 2 , positonY, x + widthBackground / 2, positonY, heightBackground)
+        
+        if ("3" in armor) {
+          if ("3" in head) {
+            color = when {
+              health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
+              health > 57f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot by kar98
+              health > 38f -> YELLOW                            // 3 bodyshots
+              health > 19f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          } else {
+            color = when {
+              health > 57f -> Color(0.16f, 0.86f, 0.16f, 1f)    
+              health > 38f -> YELLOW                            // 3 bodyshots
+              health > 19f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          }
+        } else if ("2" in armor) {
+          if ("3" in head) {
+            color = when {
+              health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
+              health > 78f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot
+              health > 52f -> YELLOW                            // 3 bodyshots
+              health > 26f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          } else {
+            color = when {
+              health > 78f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot
+              health > 52f -> YELLOW                            // 3 bodyshots
+              health > 26f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          }
+        } else if ("1" in armor) {
+          if ("3" in head) {
+            color = when {
+              health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
+              health > 60f -> YELLOW                            // 3 bodyshots
+              health > 30f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          } else {
+            color = when {
+              health > 84f -> Color(0.16f, 0.86f, 0.16f, 1f)    
+              health > 60f -> YELLOW                            // 3 bodyshots
+              health > 30f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          }
+        } else if (" " in armor) {
+          if ("3" in head) {
+            color = when {
+              health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
+              health > 44f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          } else {
+            color = when {
+              health > 88f -> Color(0.16f, 0.86f, 0.16f, 1f)    
+              health > 44f -> ORANGE                            // 2 bodyshots
+              else -> RED                                       // 1 bodyshot
+            }
+          }
+        }
+        rectLine(x - width / 2, positonY, x - width / 2 + healthWidth, positonY, height)
+
+        val playerIsGroggying = isGroggying[actor.netGUID] ?: false
+        val playerIsReviving = isReviving[actor.netGUID] ?: false
+        val currentTime = System.currentTimeMillis()
+
+        /*
+        val killThreshold = when {
+          currentTime - gameStartTime < 300000 -> 2
+          currentTime - gameStartTime < 600000 -> 4
+          else -> 6
+        }
+        */
+
+        val name = playerNames[playerStateGUID] ?: return
+        //val sleepTime = (actor.netGUID).toString().drop(18).dropLast(1).toLong()
+        query(name, 2000)
+
+        var hackerCheck = 0
+        if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
+          val info = completedPlayerInfo[name]!!
+          if (info.killDeathRatio > 3f || info.headshotKillRatio > 0.35f)
+            hackerCheck = 1
+        }
+      
+        if (playerIsGroggying == true) {
+          color = if (isTeamMate(actor))
+            CYAN
+          else 
+            Color(0f, 0f, 0f, 0.55f)
+          circle(x, y, backgroundRadius, 10)
+        } else if (playerIsReviving == true) {
+          color = BLACK
+          circle(x, y, backgroundRadius, 10)
+          color = if (isTeamMate(actor))
+            CYAN
+          else
+            ORANGE
+          circle(x, y, playerRadius, 10)
+        } else if (hackerCheck == 1) {
           color = BLACK
           circle(x, y, backgroundRadius, 10)
           color = Color(1.0f, 0.1f, 1.0f, 1f)
           circle(x, y, playerRadius, 10)
-          println("Name: $name, KD: ${info.killDeathRatio}, Headshot: ${info.headshotKillRatio}")
-        }
-      } else {
-        color = BLACK
-        circle(x, y, backgroundRadius, 10)
-        color = when {
-          isTeamMate(actor) -> teamColor
-          attach == null -> pColor
-          //attach == selfID -> selfColor
-          //playerID == null -> pColor
-          isTeamMate(actors[attach]) -> teamColor
-          else -> pColor
-          }
-        circle(x, y, playerRadius, 10)
-      }
 
+        /* KillThreshold method to check aimbot hacker
+        } else if (numKills > killThreshold  && !isTeamMate(actor)) {
+          color = BLACK
+          circle(x, y, backgroundRadius, 10)
+          color = Color(1.0f, 0.1f, 1.0f, 1f)
+          circle(x, y, playerRadius, 10)
+        */
+        } else {
+          color = BLACK
+          circle(x, y, backgroundRadius, 10)
+          color = when {
+            isTeamMate(actor) -> teamColor
+            playerID == null -> selfSightColor
+            attach == null -> pColor
+            isTeamMate(actors[attach]) -> teamColor
+            else -> pColor
+            }
+          circle(x, y, playerRadius, 10)
+        }
+
+      }
+    } catch (e: Exception) { 
+      println("drawPlayer error")
     }
 
     // DRAW WINDOW EDGE
@@ -1491,7 +1621,24 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         playerEdgeColor
       circle(inMapX, inMapY, playerRadius, 10)
     }
+  } 
+
+  /*
+  fun ShapeRenderer.drawTeamMarker(actor: Actor?) {
+    if (isTeamMate(actor)) {
+      val playerStateGUID = actorWithPlayerState[actor?.netGUID]
+      if (playerStateGUID != null) {
+        //val name = playerNames[playerStateGUID] ?: return
+        val position = teamMapMarkerPosition[playerStateGUID]
+        val show = teamShowMapMarker[playerStateGUID]
+        println(show)
+        val number = teamMemberNumber[playerStateGUID]
+        println(number)
+      }
+    }
   }
+  */
+  
 
   private fun isTeamMate(actor: Actor?): Boolean {
     if (actor != null) {

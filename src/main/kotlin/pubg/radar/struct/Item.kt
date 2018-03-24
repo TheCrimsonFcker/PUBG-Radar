@@ -60,6 +60,7 @@ class Item {
             "M24" to "M24",
             "M249" to "M249",
             "Mk14" to "Mk14",
+            "FlareGun" to "FlareGun",
             "Grenade" to "grenade"),
         "Ammo" to mapOf(
             "556mm" to "556",

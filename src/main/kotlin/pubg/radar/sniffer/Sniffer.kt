@@ -280,7 +280,7 @@ class Sniffer {
               }
             } catch (e: Exception) {
             }
-            Thread.sleep(2)
+            Thread.sleep(1)
           }
         }
       }

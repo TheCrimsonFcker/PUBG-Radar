@@ -71,7 +71,7 @@ object WeaponProcessorCMD {
         }
         17 -> {//CurrentWeaponIndex
           val currentWeaponIndex = propertyInt()
-//          println("$actor carry $currentWeaponIndex")
+          //println("17 $actor carry $currentWeaponIndex")
         }
         else -> return false
       }

@@ -50,8 +50,11 @@ class PlayerProfile {
     val scheduled = AtomicBoolean(false)
     val running = AtomicBoolean(true)
     
-    fun query(name: String) {
-      if (completedPlayerInfo.containsKey(name)) return
+    fun query(name: String, sleepTime: Long) {
+      if (completedPlayerInfo.containsKey(name)) {
+        //println(completedPlayerInfo)
+        return
+      }
       baseCount.putIfAbsent(name, 0)
       pendingPlayerInfo.compute(name) { _, count ->
         (count ?: 0) + 1
@@ -59,6 +62,7 @@ class PlayerProfile {
       if (scheduled.compareAndSet(false, true))
         thread(isDaemon = true) {
           while (running.get()) {
+            Thread.sleep(sleepTime)
             var next = pendingPlayerInfo.maxBy { it.value + baseCount[it.key]!! }
             if (next == null) {
               scheduled.set(false)
@@ -81,8 +85,7 @@ class PlayerProfile {
             } else {
               completedPlayerInfo[name] = playerInfo
               pendingPlayerInfo.remove(name)
-              //println(playerInfo)
-              //Thread.sleep(2000)
+              //println("$name $playerInfo")
             }
           }
         }
@@ -93,8 +96,8 @@ class PlayerProfile {
         println("name null")
         return PlayerInfo(0f, 0f)
       } else {
-        try {
-          val url = URL("https://pubg.op.gg/user/$name")
+        try {          
+          val url = URL("https://pubg.op.gg/user/$name?server=as")
           val html = url.readText()
           val elements = HTMLParser.getUserID(html)
           var strList:List<String> = elements.split("\"")
@@ -104,24 +107,44 @@ class PlayerProfile {
           }
 
           val userID = strList[5]
-          val urlInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=as&queue_size=2&mode=tpp")
-          val htmlInfo = urlInfo.readText()
-          val elementsInfo = HTMLParser.getUserInfo(htmlInfo)
-          var strListInfo:List<String> = elementsInfo.split(":")
+          //println(name)
+          //println(url)
 
-          val matches_cnt = (strListInfo[3].dropLast(18)).toFloat()
-          val kills_sum = (strListInfo[6].dropLast(12)).toFloat()
-          val headshot_kills_sum = (strListInfo[9].dropLast(13)).toFloat()
+          val urlInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=as&queue_size=4&mode=tpp")
+          //val htmlInfo = urlInfo.readText()
+          //val elementsInfo = HTMLParser.getUserInfo(htmlInfo)
+          val elementsInfo = urlInfo.readText()
+          var strListInfo:List<String> = elementsInfo.split("sum\":")
+          var strResult = ""
+          for (item in strListInfo) {
+            strResult = strResult + item + "\n"
+          }
+          
+          // println(urlInfo)
+          //println(elementsInfo)
 
-          if (strListInfo == null) {
+          val kills_sum = ((strListInfo[1].split(","))[0]).toFloat()
+          //println(kills_sum)
+          val headshot_kills_sum = ((strListInfo[3].split(","))[0]).toFloat()
+          //println(headshot_kills_sum)
+          val deaths_sum = ((strListInfo[4].split(","))[0]).toFloat()
+          //println(deaths_sum)
+          /*
+          val headshot_kills_sum = (strListInfo[11].dropLast(13)).toFloat()
+          println(headshot_kills_sum)
+          val deaths_sum = (strListInfo[12].dropLast(19)).toFloat()
+          println(deaths_sum)
+          */
+
+          if (kills_sum == null || headshot_kills_sum == null || deaths_sum == null) {
             println("Info null")
             return PlayerInfo(0f, 0f)
           } else {
-            if (matches_cnt == 0f) {
+            if (deaths_sum == 0f) {
               println("New Account")
-              return PlayerInfo(0f, 0f)
+              return PlayerInfo(kills_sum, (headshot_kills_sum / kills_sum))
             } else
-              return PlayerInfo((kills_sum / matches_cnt), (headshot_kills_sum / matches_cnt))
+              return PlayerInfo((kills_sum / deaths_sum), (headshot_kills_sum / kills_sum))
           }
         } catch (e: Exception) {
         }

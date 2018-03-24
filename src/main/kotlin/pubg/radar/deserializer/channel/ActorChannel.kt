@@ -27,7 +27,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
     val droppedItemCompToItem = ConcurrentHashMap<NetworkGUID, NetworkGUID>()    
     val droppedItemLocation = ConcurrentHashMap<NetworkGUID, tuple2<Vector2, String>>()
     val corpseLocation = ConcurrentHashMap<NetworkGUID, Vector3>()
-    val actorHasWeapons=ConcurrentHashMap<NetworkGUID,IntArray>()
+    val actorHasWeapons = ConcurrentHashMap<NetworkGUID, IntArray>()
     val weapons = ConcurrentHashMap<Int, Actor>()
     // val itemBag=ConcurrentHashMap<NetworkGUID,IntArray>>()
 

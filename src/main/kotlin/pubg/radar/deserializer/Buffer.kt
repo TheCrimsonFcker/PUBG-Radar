@@ -1,5 +1,6 @@
 package pubg.radar.deserializer
 
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import pubg.radar.struct.*
 import pubg.radar.struct.NetGUIDCache.Companion.guidCache
@@ -255,6 +256,8 @@ open class Buffer(
         (readInt(max) - bias) / scaleFactor.toFloat(),
         (readInt(max) - bias) / scaleFactor.toFloat())
   }
+
+  fun readVector2D() = Vector2(readFloat() , readFloat())
   
   fun readFixedVector(maxValue: Int, numBits: Int) =
       Vector3(readFixedCompressedFloat(maxValue, numBits),

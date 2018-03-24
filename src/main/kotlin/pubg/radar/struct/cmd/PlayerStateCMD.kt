@@ -28,6 +28,9 @@ object PlayerStateCMD: GameListener {
     attacks.clear()
     selfID = NetworkGUID(0)
     selfStateID = NetworkGUID(0)
+    playerHead.clear()
+    playerArmor.clear()
+    playerBack.clear()
   }
  
   val playerNames = ConcurrentHashMap<NetworkGUID, String>()
