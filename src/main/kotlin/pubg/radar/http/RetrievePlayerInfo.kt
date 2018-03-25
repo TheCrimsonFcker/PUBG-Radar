@@ -52,7 +52,6 @@ class PlayerProfile {
     
     fun query(name: String, sleepTime: Long) {
       if (completedPlayerInfo.containsKey(name)) {
-        //println(completedPlayerInfo)
         return
       }
       baseCount.putIfAbsent(name, 0)
@@ -80,12 +79,11 @@ class PlayerProfile {
               baseCount.compute(name) { _, count ->
                 count!! - 1
               }
-              println("null")
               Thread.sleep(2000)
             } else {
               completedPlayerInfo[name] = playerInfo
               pendingPlayerInfo.remove(name)
-              //println("$name $playerInfo")
+              println("Completed: ${completedPlayerInfo.size} Pending: ${pendingPlayerInfo.size}")
             }
           }
         }
@@ -97,59 +95,50 @@ class PlayerProfile {
         return PlayerInfo(0f, 0f)
       } else {
         try {          
-          val url = URL("https://pubg.op.gg/user/$name?server=as")
+          val url = URL("https://pubg.op.gg/user/$name")
           val html = url.readText()
           val elements = HTMLParser.getUserID(html)
-          var strList:List<String> = elements.split("\"")
-          if (strList[5] == null) {
-            println("ID null")
+          if (elements == "") {
+            println("$name get no ID.")
             return PlayerInfo(0f, 0f)
           }
-
+          var strList:List<String> = elements.split("\"")
           val userID = strList[5]
-          //println(name)
-          //println(url)
 
-          val urlInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=as&queue_size=4&mode=tpp")
-          //val htmlInfo = urlInfo.readText()
-          //val elementsInfo = HTMLParser.getUserInfo(htmlInfo)
-          val elementsInfo = urlInfo.readText()
+          var elementsInfo = ""          
+          try {
+            val urlASInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=as&queue_size=4&mode=tpp")
+            elementsInfo = urlASInfo.readText()
+          } catch (e: Exception ) {
+            try {
+              val urlSEAInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=sea&queue_size=4&mode=tpp")
+              elementsInfo = urlSEAInfo.readText()
+            } catch (e: Exception ) {
+              val urlKRJPInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=krjp&queue_size=4&mode=tpp")
+              elementsInfo = urlKRJPInfo.readText()
+            }
+          }
+
           var strListInfo:List<String> = elementsInfo.split("sum\":")
           var strResult = ""
           for (item in strListInfo) {
             strResult = strResult + item + "\n"
           }
-          
-          // println(urlInfo)
-          //println(elementsInfo)
 
           val kills_sum = ((strListInfo[1].split(","))[0]).toFloat()
-          //println(kills_sum)
           val headshot_kills_sum = ((strListInfo[3].split(","))[0]).toFloat()
-          //println(headshot_kills_sum)
           val deaths_sum = ((strListInfo[4].split(","))[0]).toFloat()
-          //println(deaths_sum)
-          /*
-          val headshot_kills_sum = (strListInfo[11].dropLast(13)).toFloat()
-          println(headshot_kills_sum)
-          val deaths_sum = (strListInfo[12].dropLast(19)).toFloat()
-          println(deaths_sum)
-          */
 
-          if (kills_sum == null || headshot_kills_sum == null || deaths_sum == null) {
-            println("Info null")
+          if (headshot_kills_sum < 10f) {
             return PlayerInfo(0f, 0f)
           } else {
-            if (deaths_sum == 0f) {
-              println("New Account")
-              return PlayerInfo(kills_sum, (headshot_kills_sum / kills_sum))
-            } else
-              return PlayerInfo((kills_sum / deaths_sum), (headshot_kills_sum / kills_sum))
+            return PlayerInfo((kills_sum / deaths_sum), (headshot_kills_sum / kills_sum))
           }
+          
         } catch (e: Exception) {
         }
       }
-      return null
+      return PlayerInfo(0f, 0f)
     }
     
   }

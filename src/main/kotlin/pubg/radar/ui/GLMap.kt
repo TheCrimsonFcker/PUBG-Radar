@@ -97,7 +97,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     selfAttachTo = null
     airdropListX.clear()
     airdropListY.clear()
-    gameStartTime = System.currentTimeMillis()
+    //gameStartTime = System.currentTimeMillis()
   }
   
   override fun onGameOver() {
@@ -133,6 +133,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
   lateinit var littleFont: BitmapFont
   lateinit var littleFontShadow: BitmapFont
   lateinit var nameFont: BitmapFont
+  lateinit var nameBlueFont: BitmapFont
   lateinit var nameFontShadow: BitmapFont
   lateinit var compassFont: BitmapFont
   lateinit var compassFontShadow: BitmapFont
@@ -421,9 +422,10 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     param.size = 10
     param.color = Color(0.9f, 0.9f, 0.9f, 1f) 
     nameFont = generator.generateFont(param)
+    param.color = Color(0.3f, 0.9f, 1f, 1f) 
+    nameBlueFont = generator.generateFont(param)
     param.color = Color(0f, 0f, 0f, 0.5f) 
     nameFontShadow = generator.generateFont(param)
-
     generatorHud.dispose()
     generator.dispose()    
   }
@@ -1180,7 +1182,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         "Nagant" in weapon[1] || "Rhino" in weapon[1] || "Sawnoff" in weapon[1] -> ""
         "Crowbar" in weapon[1] || "Machete" in weapon[1] || "Sickle" in weapon[1] -> ""
         weapon[1] in "" -> ""
-        else -> " $weapon[1]"
+        else -> " ${weapon[1]}"
       }
 
 
@@ -1210,16 +1212,10 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         textTop = "$weaponAbbr  "
         textBottom = "$name"
       }
-
-      layout.setText(nameFont, textTop)
-      val widthTop = layout.width
-      layout.setText(nameFont, textBottom)
-      val widthBottom = layout.width
-
       
       if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
         val info = completedPlayerInfo[name]!!
-        if (!isTeamMate(actor) && (info.killDeathRatio > 3f || info.headshotKillRatio > 0.35f)) {
+        if (!isTeamMate(actor) && (info.killDeathRatio > 2.5f && info.headshotKillRatio > 0.35f)) {
           val hackerInfo = "${(info.headshotKillRatio*100).d(0)}% ${info.killDeathRatio.d(1)}"
           layout.setText(nameFont, hackerInfo)
           val widthHackerInfo = layout.width
@@ -1227,7 +1223,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
             for(j in -1..1) 
               nameFontShadow.draw(spriteBatch, hackerInfo, 
                                   sx - widthHackerInfo/2 + i, windowHeight - sy + 26 + j)
-          nameFont.draw(spriteBatch, hackerInfo, sx - widthHackerInfo/2, windowHeight - sy + 26)
+          nameBlueFont.draw(spriteBatch, hackerInfo, sx - widthHackerInfo/2, windowHeight - sy + 26)
         }
       }
       
@@ -1247,6 +1243,12 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         nameFont.draw(spriteBatch, equippedHead, sx - 14 - widthLeft/2, windowHeight - sy + 1.8f)
         nameFont.draw(spriteBatch, equippedArmor, sx + 14 - widthRight/2, windowHeight - sy + 1.8f)
       }
+
+
+      layout.setText(nameFont, textTop)
+      val widthTop = layout.width
+      layout.setText(nameFont, textBottom)
+      val widthBottom = layout.width
 
       for(i in -1..1)
         for(j in -1..1) {
@@ -1338,7 +1340,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       aimStartTime.remove(actorID)
   }
   
-  var gameStartTime = System.currentTimeMillis()
+  //var gameStartTime = System.currentTimeMillis()
   fun ShapeRenderer.drawPlayer(pColor: Color?, actorInfo: renderInfo, drawSight: Boolean = true) {
     val zoom = camera.zoom
     val backgroundRadius = (playerRadius + 1500f) * zoom
@@ -1520,7 +1522,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
 
         val playerIsGroggying = isGroggying[actor.netGUID] ?: false
         val playerIsReviving = isReviving[actor.netGUID] ?: false
-        val currentTime = System.currentTimeMillis()
+        //val currentTime = System.currentTimeMillis()
 
         /*
         val killThreshold = when {
@@ -1537,7 +1539,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         var hackerCheck = 0
         if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
           val info = completedPlayerInfo[name]!!
-          if (info.killDeathRatio > 3f || info.headshotKillRatio > 0.35f)
+          if (info.killDeathRatio > 2.5f && info.headshotKillRatio > 0.35f)
             hackerCheck = 1
         }
       
@@ -1558,7 +1560,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         } else if (hackerCheck == 1) {
           color = BLACK
           circle(x, y, backgroundRadius, 10)
-          color = Color(1.0f, 0.1f, 1.0f, 1f)
+          color = Color(1.0f, 0f, 1.0f, 1f)
           circle(x, y, playerRadius, 10)
 
         /* KillThreshold method to check aimbot hacker
@@ -1788,6 +1790,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     espFont.dispose()
     espFontShadow.dispose()
     nameFont.dispose()
+    nameBlueFont.dispose()
     nameFontShadow.dispose()
     littleFont.dispose()
     littleFontShadow.dispose()
