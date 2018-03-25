@@ -43,13 +43,16 @@ Mouse Middle Button | Focus on player or Quick zoom-in/out |
 # Changelog 
 
 __20180324__
-* Optimized the method to check aimbot hacker. 
+
+![Hacker](https://i.imgur.com/Mp2JKsy.png)
+* Show HSR and KDR when enemy is an aimbot suspect.
+* Optimized ```RetrievePlayerInfo.kt``` code.
 * Added teamate pin marker.
 * Added Flare Gun for event mode.
 
 __20180321__
 * Rewrote ```RetrievePlayerInfo.kt```. Now we can get player status from [pubg.op.gg](https://pubg.op.gg). 
-* Check aimbot suspects (KD > 3 or Headshot kill rate > 30%), and draw them in pink.
+* Check aimbot suspects (KD > 3 or Headshot kill rate > 35%), and draw them in pink.
 
 __20180319__
 * Major Update: Airdrop chaser.
