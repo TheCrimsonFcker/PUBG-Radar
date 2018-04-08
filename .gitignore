@@ -1,6 +1,7 @@
 target/
 src/main/kotlin/pubg/radar/deserializer/Buffer.kt
 src/main/kotlin/pubg/radar/deserializer/PacketParser.kt
+src/main/kotlin/pubg/radar/deserializer/channel/ControlChannel.kt
 src/main/resources/images/*.psd
 src/main/resources/images/bg_compass3.png
 8192_01_01J.png
