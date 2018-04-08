@@ -41,11 +41,11 @@ val playerEdgeColor = Color(0.9f, 0.1f, 0.1f, 1f)
 val parachuteColor = Color(0.8f, 0.8f, 0.8f, 1f)  //gray-white
 val corpseColor = Color(1f, 0.49f, 0f, 1f)  //orange
 
-val markerColor1 = Color(1f, 1f, 0.3f, 1f)	//yellow
+val markerColor1 = Color(1f, 1f, 0.3f, 1f)		//yellow
 val markerColor2 = Color(1f, 0.3f, 0.3f, 1f)	//red
 val markerColor3 = Color(0.3f, 0.3f, 1f, 1f)	//blue
 val markerColor4 = Color(0.3f, 1f, 0.3f, 1f)	//green
-val markerColor5 = Color(1f, 1f, 0.3f, 1f)	//yellow
+val markerColor5 = Color(1f, 1f, 0.3f, 1f)		//yellow
 val markerColor6 = Color(1f, 0.3f, 0.3f, 1f)	//red
 val markerColor7 = Color(0.3f, 0.3f, 1f, 1f)	//blue
 val markerColor8 = Color(0.3f, 1f, 0.3f, 1f)	//green

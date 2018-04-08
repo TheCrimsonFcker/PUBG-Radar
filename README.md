@@ -1,14 +1,19 @@
+Bluehole encrypted packets after 3.7.19.
+
+I will not provide decryption method in this fork.(Because no devs upload any "ready to work" source code right now, and it's not me figured out how to decrypt, I just copy and paste from Internet.) I only update some features and UI staffs here.
+
+
 # About
 Big thanks to [@AiYinZiLeGong](https://github.com/AiYinZiLeGong) [@Jerry1211](https://github.com/Jerry1211) and [@SamuelNZ](https://github.com/SamuelNZ). Everthing here is based on their work.
 
-I'm not a prof. programmer, just a noob learns to code. I don't even know the difference between _val_ and _var_. So feel free to optimize my shitty code.
+I'm not a prof. programmer, just a noob learns to code. I even don't know the difference between _val_ and _var_. So feel free to optimize my shitty code.
 
-And this is a personal programme based on my usage habit just for fun, so I don't have the ability to solve all your problems or requests. But you can get help from [here](https://github.com/AiYinZiLeGong/PUBG-Radar/issues).
+And this is a personal programme based on my usage habit, so I don't have the ability to solve all your problems or requests. But you can get help from [here](https://github.com/AiYinZiLeGong/PUBG-Radar/issues).
 
 <br />
 
 # Radar Unknown
-![RadarUnknown](https://i.imgur.com/73drvF9.png)
+![RadarUnknown](https://i.imgur.com/kfFZfnX.png)
 
 (I prefer the neat shapes icons. If you like item icons, you can try [@Jerry1211's fork](https://github.com/Jerry1211/RadarProject).)
 
@@ -28,19 +33,23 @@ Key | Function |
 2 | Show/hide Attachment |
 3 | Show/hide Lv.2 Gear |
 4 | Show/hide Reddot/Holosight/2X scpoe |
-5 | Focus on player or Quick zoom-in/out |
+5 | Center on player or Quick zoom-in/out |
 6 | Zoom-out |
 7 | Zoom-in |
-8 | Focus on latest airdrop |
+8 | Center on latest airdrop / Center on player|
 9 | Show/hide Compass |
 0 | Show/hide Player's gear info |
 ↑ ↓ ← → | Move map |
 Mouse Left Button | Drag map |
-Mouse Middle Button | Focus on player or Quick zoom-in/out |
+Mouse Middle Button | Center on player or Quick zoom-in/out |
 
 <br />
 
 # Changelog 
+
+__20180315__
+* Updated to compatible with latest game version 3.7.27.
+* Automaticlly filter Lv.2 gears on map when you have it.
 
 __20180325__
 * Optimized ```RetrievePlayerInfo.kt```.

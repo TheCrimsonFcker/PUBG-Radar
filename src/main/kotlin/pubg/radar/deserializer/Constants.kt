@@ -40,3 +40,5 @@ const val NMT_BeaconWelcome = 25
 const val NMT_BeaconJoin = 26
 const val NMT_BeaconAssignGUID = 27
 const val NMT_BeaconNetGUIDAck = 28
+
+var encryptionToken = ""
