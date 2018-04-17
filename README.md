@@ -39,7 +39,7 @@ Key | Function |
 8 | Center on latest airdrop / Center on player|
 9 | Show/hide Compass |
 0 | Show enemy's angle&distance info / Show enemy's name |
-- | Show/hide enemy's gear info |
+\- | Show/hide enemy's gear info |
 = | Show/hide enemy's med items info |
 ↑ ↓ ← → | Move map |
 Mouse Left Button | Drag map |
