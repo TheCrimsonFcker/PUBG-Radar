@@ -7,6 +7,8 @@ import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode.PROMISCUOUS
 import org.pcap4j.packet.*
 import pubg.radar.*
 import pubg.radar.deserializer.proc_raw_packet
+import pubg.radar.deserializer.replaySpeed
+import pubg.radar.deserializer.pcapFile
 import pubg.radar.sniffer.SniffOption.*
 import pubg.radar.util.notify
 import java.io.*
@@ -244,6 +246,7 @@ class Sniffer {
             else if (udp.header.srcPort.valueAsInt() in 7000..7999)
               proc_raw_packet(raw)
           } catch (e: Exception) {
+            //println("Sniffer error")
           }
         }
       }
@@ -251,7 +254,8 @@ class Sniffer {
     
     fun sniffLocationOffline(): Thread {
       return thread(isDaemon = true) {
-        val files = arrayOf("C:\\Misc\\0.pcap")
+        val files = arrayOf("C:\\Misc\\$pcapFile.pcap")
+        println("Offline Mode")
         for (file in files) {
           val handle = Pcaps.openOffline(file)
           
@@ -279,8 +283,9 @@ class Sniffer {
                 proc_raw_packet(raw)
               }
             } catch (e: Exception) {
+              //println("Sniffer Offline error")
             }
-            Thread.sleep(1)
+            Thread.sleep(replaySpeed)
           }
         }
       }

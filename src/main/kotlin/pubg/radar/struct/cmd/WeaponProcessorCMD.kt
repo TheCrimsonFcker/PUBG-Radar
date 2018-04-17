@@ -53,7 +53,7 @@ object WeaponProcessorCMD {
         13 -> readInt(ROLE_MAX)
         14 -> propertyBool()
         15 -> propertyObject()
-      //AWeaponProcessor
+        //AWeaponProcessor
         16 -> {//EquippedWeapons
           val arraySize = readUInt16()
           actorHasWeapons.compute(actor.owner!!) { _, equippedWeapons ->

@@ -39,6 +39,8 @@ object ActorCMD: GameListener {
     playerStateToActor.clear()
     actorHealth.clear()
     actorGroggyHealth.clear()
+    spectatedCount.clear()
+    //reviveCastingTime.clear()
     isGroggying.clear()
     isReviving.clear()
   }
@@ -47,6 +49,9 @@ object ActorCMD: GameListener {
   val playerStateToActor = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
   val actorHealth = ConcurrentHashMap<NetworkGUID, Float>()
   val actorGroggyHealth = ConcurrentHashMap<NetworkGUID, Float>()
+  val spectatedCount = ConcurrentHashMap<NetworkGUID, Int>()
+
+  //val reviveCastingTime = ConcurrentHashMap<NetworkGUID, Float>()
   val isGroggying = ConcurrentHashMap<NetworkGUID, Boolean>()
   val isReviving = ConcurrentHashMap<NetworkGUID, Boolean>()
   
@@ -213,10 +218,12 @@ object ActorCMD: GameListener {
           val flags = readUInt8()
         }
         42 -> {
-          val result = propertyVector10()
+          val Acceleration = propertyVector10()
+          val b = Acceleration
         }
         43 -> {
-          val result = propertyVector10()
+          val LinearVelocity = propertyVector10()
+          val b = LinearVelocity
         }
       //AMutableCharacter
         44 -> {
@@ -232,16 +239,20 @@ object ActorCMD: GameListener {
           val remote_CastAnim = readInt(8)
         }
         46 -> {
-          val result = propertyInt()
+          val CurrentWeaponZoomLevel = propertyByte()
+          val b = CurrentWeaponZoomLevel
         }
         47 -> {
-          val result = propertyFloat()
+          val BuffFinalSpreadFactor = propertyFloat()
+          val b = BuffFinalSpreadFactor
         }
         48 -> {
-          val result = propertyObject()
+          val InventoryFacade = propertyObject()
+          val b = InventoryFacade
         }
         49 -> {
-          val result = propertyObject()
+          val WeaponProcessor = propertyObject()
+          val b = WeaponProcessor
         }
         50 -> {
           val CharacterState = propertyByte()
@@ -259,13 +270,12 @@ object ActorCMD: GameListener {
           val bIsInVehicleRemote = propertyBool()
         }
         55 -> {
-          val SpectatedCount = propertyInt()
+          val result = propertyInt()
+          spectatedCount[actor.netGUID] = result
         }
-        /*
         56 -> {
           val (id, team) = propertyObject()
         }
-        */
         57 -> {
           val ActualDamage = propertyFloat()
         }
@@ -317,12 +327,14 @@ object ActorCMD: GameListener {
           val a = TargetingType
         }
         73 -> {
-          val reviveCastingTime = propertyFloat()
-          val a = reviveCastingTime
+          val result = propertyFloat()
+          //reviveCastingTime[actor.netGUID] = result
+          //println("73: ${actor.netGUID} $result")
         }
         74 -> {
           val result = propertyBool()
           val b = result
+          //println("74: ${actor.netGUID} $result")
         }
         75 -> {
           val result = propertyBool()
@@ -353,23 +365,21 @@ object ActorCMD: GameListener {
           val b = result
         }
         82 -> {
-          val bIsGroggying=propertyBool()
-          val b = bIsGroggying
-          isGroggying[actor.netGUID] = bIsGroggying
-          //println("ActorCMD 82 bIsGroggying ? $b")
+          val result = propertyBool()
+          //println("82: ${actor.netGUID} $result")
+          isGroggying[actor.netGUID] = result
         }
         83 -> {
-          val bIsThirdPerson=propertyBool()
+          val result = propertyBool()
+          //println("83: ${actor.netGUID} $result")
         }
         84 -> {
-          val bIsReviving=propertyBool()
-          val b=bIsReviving
-          //actorGroggyHealth[actor.netGUID] = GroggyHealth
-          isReviving[actor.netGUID] = bIsReviving
-          
+          isReviving[actor.netGUID] = propertyBool()
+          //println("84: ${actor.netGUID} $bIsThirdPerson")
         }
         85 -> {
-          val bIsWeaponObstructed = propertyBool()
+          val result = propertyBool()
+          //println("85: ${actor.netGUID} $result")
         }
         86 -> {
           val bIsCoatEquipped = propertyBool()

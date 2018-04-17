@@ -1,5 +1,7 @@
 package pubg.radar
 
+import pubg.radar.deserializer.replaySpeed
+import pubg.radar.deserializer.pcapFile
 import pubg.radar.sniffer.Sniffer
 import pubg.radar.ui.GLMap
 
@@ -39,8 +41,10 @@ fun gameOver() {
 
 lateinit var Args: Array<String>
 fun main(args: Array<String>) {
-  if (args.size > 0 && args[0] == "offline") {
-    println("Offline Mode")
+  if (args.size > 0) {
+    pcapFile = args[0].toString() ?: "0"
+    if (args.size > 1)
+      replaySpeed = args[1].toLong() ?: 1
     Sniffer.sniffLocationOffline()
   }
   else 

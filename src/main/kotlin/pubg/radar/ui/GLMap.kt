@@ -40,8 +40,12 @@ import pubg.radar.struct.cmd.ActorCMD.actorWithPlayerState
 import pubg.radar.struct.cmd.ActorCMD.isGroggying
 import pubg.radar.struct.cmd.ActorCMD.isReviving
 import pubg.radar.struct.cmd.ActorCMD.playerStateToActor
+import pubg.radar.struct.cmd.ActorCMD.spectatedCount
 import pubg.radar.struct.cmd.GameStateCMD.ElapsedWarningDuration
+import pubg.radar.struct.cmd.GameStateCMD.isTeamMatch
+import pubg.radar.struct.cmd.GameStateCMD.isWarMode
 import pubg.radar.struct.cmd.GameStateCMD.MatchElapsedMinutes
+import pubg.radar.struct.cmd.GameStateCMD.MatchStartType
 import pubg.radar.struct.cmd.GameStateCMD.NumAlivePlayers
 import pubg.radar.struct.cmd.GameStateCMD.NumAliveTeams
 import pubg.radar.struct.cmd.GameStateCMD.PoisonGasWarningPosition
@@ -52,6 +56,10 @@ import pubg.radar.struct.cmd.GameStateCMD.SafetyZonePosition
 import pubg.radar.struct.cmd.GameStateCMD.SafetyZoneRadius
 import pubg.radar.struct.cmd.GameStateCMD.TotalWarningDuration
 import pubg.radar.struct.cmd.PlayerStateCMD.attacks
+import pubg.radar.struct.cmd.PlayerStateCMD.countMedKit
+import pubg.radar.struct.cmd.PlayerStateCMD.countFirstAid
+import pubg.radar.struct.cmd.PlayerStateCMD.countPainKiller
+import pubg.radar.struct.cmd.PlayerStateCMD.countEnergyDrink
 import pubg.radar.struct.cmd.PlayerStateCMD.playerArmor
 import pubg.radar.struct.cmd.PlayerStateCMD.playerHead
 import pubg.radar.struct.cmd.PlayerStateCMD.playerBack
@@ -161,8 +169,10 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
   var filterAttach = -1
   var filterLvl2 = 1
   var filterScope = -1
-  var showPlayerGear = 1
   var showCompass = -1
+  var showPlayerName = -1
+  var showPlayerGear = 1
+  var showPlayerMed = -1
   var zoomSwitch = 1
 
   var dragging = false
@@ -331,7 +341,15 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       return true
 
     } else if (keycode == NUM_0) {
+      showPlayerName = showPlayerName * -1
+      return true
+      
+    } else if (keycode == MINUS) {
       showPlayerGear = showPlayerGear * -1
+      return true
+
+    } else if (keycode == EQUALS) {
+      showPlayerMed = showPlayerMed * -1
       return true
 
     } else if (keycode == DPAD_LEFT) {
@@ -415,11 +433,13 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     param.characters = DEFAULT_CHARS
     param.size = 16
     param.color = WHITE
+    //param.borderColor = Color.BLACK
+    //param.borderWidth = 1.2f
     littleFont = generator.generateFont(param)
     param.color = Color(0f, 0f, 0f, 0.5f) 
     littleFontShadow = generator.generateFont(param)
     param.size = 10
-    param.color = Color(0.9f, 0.9f, 0.9f, 1f) 
+    param.color = Color(0.9f, 0.9f, 0.9f, 1f)
     nameFont = generator.generateFont(param)
     param.color = Color(0.3f, 0.9f, 1f, 1f) 
     nameBlueFont = generator.generateFont(param)
@@ -521,7 +541,8 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         hudFont.draw(spriteBatch, "$NumAliveTeams", windowWidth - 240f - layout.width /2, windowHeight - 29f)
       } 
 
-      val timeText = "${ElapsedWarningDuration.toInt() - TotalWarningDuration.toInt()}"
+      //val timeText = "${ElapsedWarningDuration.toInt() - TotalWarningDuration.toInt()}"
+      val timeText = "${TotalWarningDuration.toInt() - ElapsedWarningDuration.toInt()}"
       layout.setText(hudFont, timeText)
       
       var offset = 0f
@@ -529,7 +550,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         offset = 130f
       spriteBatch.draw(hud_panel, windowWidth - 390f + offset, windowHeight - 60f)
       hudFontShadow.draw(spriteBatch, "SECS", windowWidth - 345f + offset, windowHeight - 29f)
-      hudFont.draw(spriteBatch, "${ElapsedWarningDuration.toInt() - TotalWarningDuration.toInt()}", windowWidth - 370f + offset - layout.width /2, windowHeight - 29f)
+      hudFont.draw(spriteBatch, "${TotalWarningDuration.toInt() - ElapsedWarningDuration.toInt()}", windowWidth - 370f + offset - layout.width /2, windowHeight - 29f)
 
 
 
@@ -556,6 +577,19 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       else
         espFontShadow.draw(spriteBatch, "SCOPE", 92f, windowHeight - 42f)
 
+      val playerStatsNumber = completedPlayerInfo.size
+      if (pendingPlayerInfo.size == 0) 
+        espFont.draw(spriteBatch, "$playerStatsNumber", 140f, windowHeight - 25f)
+      else
+        espFontShadow.draw(spriteBatch, "$playerStatsNumber", 140f, windowHeight - 25f)
+
+      val selfSpectatedCount = spectatedCount[selfStateID] ?: 0
+      if (selfSpectatedCount > 0) 
+        espFont.draw(spriteBatch, "$selfSpectatedCount", 140f, windowHeight - 42f)
+      else
+        espFontShadow.draw(spriteBatch, "0", 140f, windowHeight - 42f)
+
+
       // COMPASS BACKGROUND
       if (showCompass == 1)
         spriteBatch.draw(bg_compass, windowWidth/2 - 165f, windowHeight/2 - 165f)      
@@ -568,11 +602,6 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       val pinDistance = (pinLocation.cpy().sub(selfX, selfY).len() / 100).toInt()
       val (x, y) = pinLocation.mapToWindow()
 
-      for(i in -1..1) {
-          for(j in -1..1) {
-            littleFontShadow.draw(spriteBatch, "$pinDistance", x + i, windowHeight - y + j)
-          }
-      }
       littleFont.draw(spriteBatch, "$pinDistance", x, windowHeight - y)
       */
 
@@ -613,7 +642,8 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       drawItem()
       //drawAirdropWeapon()
       drawAPawn(typeLocation, selfX, selfY, zoom, currentTime)
-      drawCorpse()
+      if (MatchStartType != "241")
+        drawCorpse()
       // DRAW SELF
       drawPlayer(GREEN, tuple4(null, selfX, selfY, selfDirection))
       // drawPlayer(GREEN, tuple4(null, selfX, selfY, selfDir.angle()))
@@ -1149,13 +1179,16 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     players?.forEach {
       val (actor, x, y, _) = it
       actor!!
+      val (sx, sy) = mapToWindow(x, y)
 
-      if (actor?.netGUID == selfStateID) return
+      if (actor.netGUID == selfStateID) {
+        return
+      }
 
       val dir = Vector2(x - selfX, y - selfY)
       val distance = (dir.len() / 1000).toInt() * 10
       val angle = ((dir.angle() + 90) % 360 / 5).toInt() * 5
-      val (sx, sy) = mapToWindow(x, y)
+      
       
       
       val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
@@ -1209,110 +1242,139 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       }
 
       val weaponAbbr2 = when {
-        "HK416" in weapon[1] -> " M4"
-        "SCAR-L" in weapon[1] -> " SCR"
-        "M16A4" in weapon[1] -> " M16"
-        "AK47" in weapon[1] -> " AK"
-        "DP28" in weapon[1] -> " DP"
-        "AUG" in weapon[1] -> " AUG"
-        "M249" in weapon[1] -> " M249"
-        "Groza" in weapon[1] -> " GRZ"
-        "AWM" in weapon[1] -> " AWM"
-        "M24" in weapon[1] -> " M24"
-        "MK14" in weapon[1] -> " MK14"
-        "Kar98" in weapon[1] -> " K98"
-        "SKS" in weapon[1] -> " SKS"
-        "Mini" in weapon[1] -> " Mini"
-        "Win94" in weapon[1] -> " Win"
-        "UMP" in weapon[1] -> " UMP"
-        "UZI" in weapon[1] -> " Uzi"
-        "Vector" in weapon[1] -> " Vec"
-        "Thompson" in weapon[1] -> " Tom"
-        "Saiga12" in weapon[1] -> " S12K"
-        "Berreta686" in weapon[1] -> " 686"
-        "Winchester" in weapon[1] -> " 1897"
-        "Crossbow" in weapon[1] -> " Xbow"
+        "HK416" in weapon[1] -> "  M4"
+        "SCAR-L" in weapon[1] -> "  SCR"
+        "M16A4" in weapon[1] -> "  M16"
+        "AK47" in weapon[1] -> "  AK"
+        "DP28" in weapon[1] -> "  DP"
+        "AUG" in weapon[1] -> "  AUG"
+        "M249" in weapon[1] -> "  M249"
+        "Groza" in weapon[1] -> "  GRZ"
+        "AWM" in weapon[1] -> "  AWM"
+        "M24" in weapon[1] -> "  M24"
+        "MK14" in weapon[1] -> "  MK14"
+        "Kar98" in weapon[1] -> "  K98"
+        "SKS" in weapon[1] -> "  SKS"
+        "Mini" in weapon[1] -> "  Mini"
+        "Win94" in weapon[1] -> "  Win"
+        "UMP" in weapon[1] -> "  UMP"
+        "UZI" in weapon[1] -> "  Uzi"
+        "Vector" in weapon[1] -> "  Vec"
+        "Thompson" in weapon[1] -> "  Tom"
+        "Saiga12" in weapon[1] -> "  S12K"
+        "Berreta686" in weapon[1] -> "  686"
+        "Winchester" in weapon[1] -> "  1897"
+        "Crossbow" in weapon[1] -> "  Xbow"
         "G18" in weapon[1] || "M1911" in weapon[1] || "M9" in weapon[1] ||
-        "Nagant" in weapon[1] || "Rhino" in weapon[1] || "Sawnoff" in weapon[1] -> ""
-        "Crowbar" in weapon[1] || "Machete" in weapon[1] || "Sickle" in weapon[1] -> ""
+        "Nagant" in weapon[1] || "Rhino" in weapon[1] || "Sawnoff" in weapon[1] -> "  Pis"
+        "Crowbar" in weapon[1] || "Machete" in weapon[1] || "Sickle" in weapon[1] -> " Melee"
         weapon[1] in "" -> ""
-        else -> " ${weapon[1]}"
+        else -> "  ${weapon[1]}"
       }
 
 
       val weaponAbbr = weaponAbbr1 + weaponAbbr2
 
-      val equippedHead = playerHead[playerStateGUID] ?: " "
-      val equippedArmor = playerArmor[playerStateGUID] ?: " "
-
-      // Disabled show items
-      /*
-      var items=""
-      for (element in PlayerState.equipableItems) {
-          if (element == null || element._1.isBlank()) continue
-          items+="${element._1}->${element._2.toInt()}\n"
-      }
-      for (element in PlayerState.castableItems) {
-          if (element == null || element._1.isBlank()) continue
-          items+="${element._1}->${element._2}\n"
-      }
-      */
-
-      var textTop = "$teamNumber$weaponAbbr"
-      if (NumAliveTeams == NumAlivePlayers) 
-        textTop = "$weaponAbbr  "
-      var textBottom = "$angle°$distance"
-      if (isTeamMate(actor)) {
-        textTop = "$weaponAbbr  "
-        textBottom = "$name"
-      }
       
-      if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
-        val info = completedPlayerInfo[name]!!
-        if (!isTeamMate(actor) && (info.killDeathRatio > 2.5f || info.headshotKillRatio > 0.3f)) {
-          val hackerInfo = "${(info.headshotKillRatio*100).d(0)}% ${info.killDeathRatio.d(1)}"
-          layout.setText(nameFont, hackerInfo)
-          val widthHackerInfo = layout.width
+
+      var textTop = when {
+        MatchStartType == "241" /*NumAliveTeams == 3 && NumAlivePlayers > 12*/ -> if (isTeamMate(actor)) "" else "$teamNumber" // War Mode
+        isTeamMate(actor) -> "$weaponAbbr  "
+        NumAliveTeams == NumAlivePlayers -> "$weaponAbbr  "
+        else -> "$teamNumber$weaponAbbr"
+      }
+        
+      var textBottom = when {
+        MatchStartType == "241" /*NumAliveTeams == 3 && NumAlivePlayers > 12*/ -> if (isTeamMate(actor)) "" else "$angle°$distance"
+        isTeamMate(actor) -> "$name"
+        showPlayerName == 1 -> "$name"
+        else -> "$angle°$distance"
+      }
+      //var textBottom = "${actor.netGUID}"
+      
+      try {
+        val playerIsGroggying: Boolean = isGroggying[actor.netGUID] ?: false
+        val playerIsReviving: Boolean = isReviving[actor.netGUID] ?: false
+        if (playerIsReviving == true) {
+          textTop = "Revive"
+          layout.setText(nameFont, textTop)
+          val widthTop = layout.width
           for(i in -1..1)
             for(j in -1..1) 
-              nameFontShadow.draw(spriteBatch, hackerInfo, 
-                                  sx - widthHackerInfo/2 + i, windowHeight - sy + 26 + j)
-          nameBlueFont.draw(spriteBatch, hackerInfo, sx - widthHackerInfo/2, windowHeight - sy + 26)
-        }
-      }
-      
-
-      if (showPlayerGear == 1) {
-        layout.setText(nameFont, equippedHead)
-        val widthLeft = layout.width
-        layout.setText(nameFont, equippedArmor)
-        val widthRight = layout.width
-        for(i in -1..1)
-          for(j in -1..1) {
-            nameFontShadow.draw(spriteBatch, equippedHead, 
-                                sx - 14 - widthLeft/2 + i, windowHeight - sy + 1.8f + j)
-            nameFontShadow.draw(spriteBatch, equippedArmor, 
-                                sx + 14 - widthRight/2 + i, windowHeight - sy + 1.8f + j)
+              nameFontShadow.draw(spriteBatch, textTop, sx - widthTop/2 + i, windowHeight - sy + 15 + j)
+          nameFont.draw(spriteBatch, textTop, sx - widthTop/2, windowHeight - sy + 15)
+        } else if (playerIsGroggying == false) {
+          if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
+            val info = completedPlayerInfo[name]!!
+            if (!isTeamMate(actor) && (info.killDeathRatio > 2.5f || info.headshotKillRatio > 0.3f)) {
+              val hackerInfo = "${(info.headshotKillRatio*100).d(0)}% ${info.killDeathRatio.d(1)}"
+              layout.setText(nameFont, hackerInfo)
+              val widthHackerInfo = layout.width
+              for(i in -1..1)
+                for(j in -1..1) 
+                  nameFontShadow.draw(spriteBatch, hackerInfo, 
+                                      sx - widthHackerInfo/2 + i, windowHeight - sy + 26 + j)
+              nameBlueFont.draw(spriteBatch, hackerInfo, sx - widthHackerInfo/2, windowHeight - sy + 26)
+            }
           }
-        nameFont.draw(spriteBatch, equippedHead, sx - 14 - widthLeft/2, windowHeight - sy + 1.8f)
-        nameFont.draw(spriteBatch, equippedArmor, sx + 14 - widthRight/2, windowHeight - sy + 1.8f)
-      }
 
+          if (showPlayerGear == 1) {
+            val equippedHead = playerHead[playerStateGUID] ?: " "
+            val equippedArmor = playerArmor[playerStateGUID] ?: " "
+            layout.setText(nameFont, equippedHead)
+            val widthLeft = layout.width
+            layout.setText(nameFont, equippedArmor)
+            val widthRight = layout.width
+            for(i in -1..1)
+              for(j in -1..1) {
+                nameFontShadow.draw(spriteBatch, equippedHead, 
+                                    sx - 14 - widthLeft/2 + i, windowHeight - sy + 1.8f + j)
+                nameFontShadow.draw(spriteBatch, equippedArmor, 
+                                    sx + 14 - widthRight/2 + i, windowHeight - sy + 1.8f + j)
+              }
+            nameFont.draw(spriteBatch, equippedHead, sx - 14 - widthLeft/2, windowHeight - sy + 1.8f)
+            nameFont.draw(spriteBatch, equippedArmor, sx + 14 - widthRight/2, windowHeight - sy + 1.8f)
+          }
 
-      layout.setText(nameFont, textTop)
-      val widthTop = layout.width
-      layout.setText(nameFont, textBottom)
-      val widthBottom = layout.width
+          if (showPlayerMed == 1) {
+            val countMedKit = countMedKit[playerStateGUID] ?: 0
+            val countFirstAid = countFirstAid[playerStateGUID] ?: 0
+            val countPainKiller = countPainKiller[playerStateGUID] ?: 0
+            val countEnergyDrink = countEnergyDrink[playerStateGUID] ?: 0
+            val playerHeal = countMedKit + countFirstAid
+            val playerBoost = countPainKiller + countEnergyDrink
+            layout.setText(nameFont, playerHeal.toString())
+            val widthLeft = layout.width
+            layout.setText(nameFont, playerBoost.toString())
+            val widthRight = layout.width
+            for(i in -1..1)
+              for(j in -1..1) {
+                nameFontShadow.draw(spriteBatch, playerHeal.toString(), 
+                                    sx - 22 - widthLeft/2 + i, windowHeight - sy + 1.8f + j)
+                nameFontShadow.draw(spriteBatch, playerBoost.toString(), 
+                                    sx + 22 - widthRight/2 + i, windowHeight - sy + 1.8f + j)
+              }
+            nameBlueFont.draw(spriteBatch, playerHeal.toString(), sx - 22 - widthLeft/2, windowHeight - sy + 1.8f)
+            nameBlueFont.draw(spriteBatch, playerBoost.toString(), sx + 22 - widthRight/2, windowHeight - sy + 1.8f)
+          }
 
-      for(i in -1..1)
-        for(j in -1..1) {
-          nameFontShadow.draw(spriteBatch, textTop, 
-                              sx - widthTop/2 + i, windowHeight - sy + 15 + j)
-          nameFontShadow.draw(spriteBatch, textBottom, 
-                              sx - widthBottom/2 + i, windowHeight - sy - 12 + j)
+          layout.setText(nameFont, textTop)
+          val widthTop = layout.width
+          layout.setText(nameFont, textBottom)
+          val widthBottom = layout.width
+          for(i in -1..1)
+            for(j in -1..1) {
+              nameFontShadow.draw(spriteBatch, textTop, 
+                                  sx - widthTop/2 + i, windowHeight - sy + 15 + j)
+              nameFontShadow.draw(spriteBatch, textBottom, 
+                                  sx - widthBottom/2 + i, windowHeight - sy - 12 + j)
+            }
+          nameFont.draw(spriteBatch, textTop, sx - widthTop/2, windowHeight - sy + 15)
+          nameFont.draw(spriteBatch, textBottom, sx - widthBottom/2, windowHeight - sy - 12)
         }
-      nameFont.draw(spriteBatch, textTop, sx - widthTop/2, windowHeight - sy + 15)
-      nameFont.draw(spriteBatch, textBottom, sx - widthBottom/2, windowHeight - sy - 12)
+      } catch (e: Exception) { 
+        println("drawPlayerInfos error")
+      }
 
     }
   }
@@ -1326,9 +1388,6 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       if (road > 0) {
         val runningTime = (road / runSpeed).toInt()
         val (x, y) = dir.nor().scl(road).add(selfCoords).mapToWindow()
-        for(i in -1..1)
-          for(j in -1..1)
-            littleFontShadow.draw(spriteBatch, "$runningTime", x + i, windowHeight - y + j)
         littleFont.draw(spriteBatch, "$runningTime", x, windowHeight - y)
         /*
         val remainingTime = (TotalWarningDuration - ElapsedWarningDuration).toInt()
@@ -1405,7 +1464,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     val attach = actor?.attachChildren?.values?.firstOrNull()
 
     val playerID = when {
-      actor != null -> actorWithPlayerState[actor!!.netGUID]
+      actor != null -> actorWithPlayerState[actor.netGUID]
       else -> null
     }
 
@@ -1423,7 +1482,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         //color = sightColor
         color = when {
           isTeamMate(actor) -> teamSightColor
-          playerID == null -> selfSightColor
+          //playerID == null -> selfSightColor
           attach == null -> enemySightColor
           isTeamMate(actors[attach]) -> teamSightColor
           else -> enemySightColor
@@ -1492,21 +1551,26 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     if (actor != null && actor.isACharacter) {
       val health = actorHealth[actor.netGUID] ?: 100f
       val groggyHealth = actorGroggyHealth[actor.netGUID] ?: 101f
-      
-      val width = healthBarWidth * zoom
-      val widthBackground = (healthBarWidth + 2000) * zoom
-      val height = healthBarHeight * zoom
-      val heightBackground = (healthBarHeight + 2000) * zoom
-      val positonY = y + playerRadius + heightBackground / 2
-      val healthWidth = (health / 100.0 * width).toFloat()
 
       val playerStateGUID = actorWithPlayerState[actor.netGUID]
-      val numKills = playerNumKills[playerStateGUID] ?: 0
-      val head = playerHead[playerStateGUID] ?: " "
-      val armor = playerArmor[playerStateGUID] ?: " "
+      //val numKills = playerNumKills[playerStateGUID] ?: 0
+      
 
       try {
         // DRAW HEALTHBAR
+        val width = healthBarWidth * zoom
+        val widthBackground = (healthBarWidth + 2000) * zoom
+        val height = healthBarHeight * zoom
+        val heightBackground = (healthBarHeight + 2000) * zoom
+        val positonY = y + playerRadius + heightBackground / 2
+        val healthWidth = when { 
+          health > 0f -> (health / 100.0 * width).toFloat()
+          else -> (groggyHealth / 100.0 * width).toFloat()
+        }
+
+        val head = playerHead[playerStateGUID] ?: " "
+        val armor = playerArmor[playerStateGUID] ?: " "
+
         color = BLACK
         rectLine(x - widthBackground / 2 , positonY, x + widthBackground / 2, positonY, heightBackground)
         
@@ -1517,14 +1581,16 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
               health > 57f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot by kar98
               health > 38f -> YELLOW                            // 3 bodyshots
               health > 19f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           } else {
             color = when {
               health > 57f -> Color(0.16f, 0.86f, 0.16f, 1f)    
               health > 38f -> YELLOW                            // 3 bodyshots
               health > 19f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           }
         } else if ("2" in armor) {
@@ -1534,14 +1600,16 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
               health > 78f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot
               health > 52f -> YELLOW                            // 3 bodyshots
               health > 26f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           } else {
             color = when {
               health > 78f -> Color(0.16f, 0.86f, 0.16f, 1f)    // 1 headshot
               health > 52f -> YELLOW                            // 3 bodyshots
               health > 26f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           }
         } else if ("1" in armor) {
@@ -1550,14 +1618,16 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
               health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
               health > 60f -> YELLOW                            // 3 bodyshots
               health > 30f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           } else {
             color = when {
               health > 84f -> Color(0.16f, 0.86f, 0.16f, 1f)    
               health > 60f -> YELLOW                            // 3 bodyshots
               health > 30f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           }
         } else if (" " in armor) {
@@ -1565,13 +1635,15 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
             color = when {
               health > 84f -> Color(0.00f, 0.93f, 0.93f, 1f)    
               health > 44f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           } else {
             color = when {
               health > 88f -> Color(0.16f, 0.86f, 0.16f, 1f)    
               health > 44f -> ORANGE                            // 2 bodyshots
-              else -> RED                                       // 1 bodyshot
+              health > 0f  -> RED                               // 1 bodyshot
+              else -> GRAY
             }
           }
         }
@@ -1582,21 +1654,12 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
 
       try {
         // DRAW PLAYER CIRCLE
-        val playerIsGroggying = isGroggying[actor.netGUID] ?: false
-        val playerIsReviving = isReviving[actor.netGUID] ?: false
-        //val currentTime = System.currentTimeMillis()
+        val playerIsGroggying: Boolean = isGroggying[actor.netGUID] ?: false
+        val playerIsReviving: Boolean = isReviving[actor.netGUID] ?: false
 
-        /*
-        val killThreshold = when {
-          currentTime - gameStartTime < 300000 -> 2
-          currentTime - gameStartTime < 600000 -> 4
-          else -> 6
-        }
-        */
-
-        val name = playerNames[playerStateGUID] ?: return
-        //val sleepTime = (actor.netGUID).toString().drop(18).dropLast(1).toLong()
-        query(name, 1000)
+        val name = playerNames[playerStateGUID] ?: "" //return
+        if (name != "")
+          query(name, 1000)
 
         // HACKER CHECK
         var hackerCheck = 0
@@ -1607,13 +1670,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         }
         
         // PLAYER COLOR
-        if (playerIsGroggying == true) {
-          color = if (isTeamMate(actor))
-            CYAN
-          else 
-            Color(0f, 0f, 0f, 0.55f)
-          circle(x, y, backgroundRadius, 10)
-        } else if (playerIsReviving == true) {
+        if (playerIsReviving == true) {
           color = BLACK
           circle(x, y, backgroundRadius, 10)
           color = if (isTeamMate(actor))
@@ -1621,18 +1678,21 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
           else
             ORANGE
           circle(x, y, playerRadius, 10)
+        } else if (/*playerIsGroggying == true*/ health == 0f) {
+          if (isTeamMate(actor)) {
+            color = BLACK
+            circle(x, y, backgroundRadius, 10)
+            color = CYAN
+            circle(x, y, playerRadius, 10)
+          } else { 
+            color = Color(0f, 0f, 0f, 0.5f)
+            circle(x, y, backgroundRadius, 10)
+          }
         } else if (hackerCheck == 1) {
           color = BLACK
           circle(x, y, backgroundRadius, 10)
           color = Color(1.0f, 0f, 1.0f, 1f)
           circle(x, y, playerRadius, 10)
-        /* KillThreshold method to check aimbot hacker
-        } else if (numKills > killThreshold  && !isTeamMate(actor)) {
-          color = BLACK
-          circle(x, y, backgroundRadius, 10)
-          color = Color(1.0f, 0.1f, 1.0f, 1f)
-          circle(x, y, playerRadius, 10)
-        */
         } else {
           color = BLACK
           circle(x, y, backgroundRadius, 10)
@@ -1652,7 +1712,6 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         color = pColor
         circle(x, y, playerRadius, 10)
       }
-
     }
 
     // DRAW WINDOW EDGE

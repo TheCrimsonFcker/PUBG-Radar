@@ -38,7 +38,9 @@ Key | Function |
 7 | Zoom-in |
 8 | Center on latest airdrop / Center on player|
 9 | Show/hide Compass |
-0 | Show/hide Player's gear info |
+0 | Show enemy's angle&distance info / Show enemy's name |
+- | Show/hide enemy's gear info |
+= | Show/hide enemy's med items info |
 ↑ ↓ ← → | Move map |
 Mouse Left Button | Drag map |
 Mouse Middle Button | Center on player or Quick zoom-in/out |
@@ -46,6 +48,20 @@ Mouse Middle Button | Center on player or Quick zoom-in/out |
 <br />
 
 # Changelog 
+
+__20180417__
+* Updated Miramar map to 3.7.28.
+* Updated data struct to 3.7.28.
+* Added Solo/Team mode check in ```RetrievePlayerInfo.kt```.
+* Press ```0``` to show enemy's name.
+* Press ```=``` to show enemy's med item number.
+* Fixed safe circle count down.
+* Added a indicator to show how many enemies' info we obtained.
+* Added a indicator to show how many players are spectating you.
+* Automatically hide death box in War mode.
+* Automatically hide player's stats in War mode.
+* Automatically hide player's stats if he is down.
+* Colored enemy's healthbar in gray if he is down.
 
 __20180315__
 * Updated to compatible with latest game version 3.7.27.

@@ -1,10 +1,12 @@
 package pubg.radar.http
 
 import pubg.radar.*
+import pubg.radar.struct.cmd.GameStateCMD.isTeamMatch
+import pubg.radar.struct.cmd.GameStateCMD.NumAlivePlayers
+import pubg.radar.struct.cmd.GameStateCMD.NumAliveTeams
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
-
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
@@ -83,7 +85,7 @@ class PlayerProfile {
             } else {
               completedPlayerInfo[name] = playerInfo
               pendingPlayerInfo.remove(name)
-              println("Completed: ${completedPlayerInfo.size} Pending: ${pendingPlayerInfo.size}")
+              //println("Pending: ${pendingPlayerInfo.size} Completed: ${completedPlayerInfo.size}")
             }
           }
         }
@@ -105,17 +107,27 @@ class PlayerProfile {
           var strList:List<String> = elements.split("\"")
           val userID = strList[5]
 
-          var elementsInfo = ""          
+          var queue_size = (if (isTeamMatch) "4" else "1")
+          var elementsInfo = ""
+          
           try {
-            val urlASInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=as&queue_size=4&mode=tpp")
+            val urlASInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-04&server=as&queue_size=$queue_size&mode=tpp")
             elementsInfo = urlASInfo.readText()
           } catch (e: Exception ) {
             try {
-              val urlSEAInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=sea&queue_size=4&mode=tpp")
+              val urlSEAInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-04&server=sea&queue_size=$queue_size&mode=tpp")
               elementsInfo = urlSEAInfo.readText()
             } catch (e: Exception ) {
-              val urlKRJPInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-03&server=krjp&queue_size=4&mode=tpp")
-              elementsInfo = urlKRJPInfo.readText()
+              try {
+                val urlKRJPInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-04&server=jp&queue_size=$queue_size&mode=tpp")
+                elementsInfo = urlKRJPInfo.readText()
+              } catch (e: Exception ) {
+                try {
+                  val urlKRJPInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-04&server=kr&queue_size=$queue_size&mode=tpp")
+                  elementsInfo = urlKRJPInfo.readText()
+                } catch (e: Exception ) {
+                }
+              }
             }
           }
 
@@ -136,6 +148,7 @@ class PlayerProfile {
           }
           
         } catch (e: Exception) {
+          println("RetrievePlayerInfo Error: $name")
         }
       }
       return PlayerInfo(0f, 0f)

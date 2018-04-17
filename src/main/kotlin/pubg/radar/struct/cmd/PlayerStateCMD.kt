@@ -28,6 +28,10 @@ object PlayerStateCMD: GameListener {
     attacks.clear()
     selfID = NetworkGUID(0)
     selfStateID = NetworkGUID(0)
+    countMedKit.clear()
+    countFirstAid.clear()
+    countPainKiller.clear()
+    countEnergyDrink.clear()
     playerHead.clear()
     playerArmor.clear()
     playerBack.clear()
@@ -40,7 +44,12 @@ object PlayerStateCMD: GameListener {
   val attacks = ConcurrentLinkedQueue<Pair<NetworkGUID, NetworkGUID>>()//A -> B
   var selfID = NetworkGUID(0)
   var selfStateID = NetworkGUID(0)
-  var equipableItems = DynamicArray<tuple2<String,Float>?>(3,0)
+  var castableItems = DynamicArray<tuple2<String, Int>?>(8, 0)
+  var countMedKit = ConcurrentHashMap<NetworkGUID, Int>()
+  var countFirstAid = ConcurrentHashMap<NetworkGUID, Int>()
+  var countPainKiller = ConcurrentHashMap<NetworkGUID, Int>()
+  var countEnergyDrink = ConcurrentHashMap<NetworkGUID, Int>()
+  var equipableItems = DynamicArray<tuple2<String, Float>?>(3, 0)
   val playerHead = ConcurrentHashMap<NetworkGUID, String>()
   val playerArmor = ConcurrentHashMap<NetworkGUID, String>()
   val playerBack = ConcurrentHashMap<NetworkGUID, String>()
@@ -131,7 +140,53 @@ object PlayerStateCMD: GameListener {
 //        println("${actor.netGUID} ReportToken=$ReportToken")
         }
         30 -> { // EmoteBitArray
-          return false
+          val arraySize = readUInt16()
+          castableItems.resize(arraySize)
+          var index = readIntPacked()
+          while (index != 0)
+          {
+            val idx = index - 1
+            val arrayIdx = idx / 3
+            val structIdx = idx % 3
+            val element = castableItems[arrayIdx] ?: tuple2("", 0)
+            when (structIdx)
+            {
+              0 -> {
+                val (guid, castableItemClass) = readObject()
+                if (castableItemClass != null)
+                  element._1 = simplify(castableItemClass.pathName)
+                  //println(element._1)
+              }
+              1 -> {
+                val ItemType = readInt(8)
+                val a = ItemType
+              }
+              2 -> {
+                val itemCount = readInt32()
+                element._2 = itemCount
+              }
+            }
+            castableItems[arrayIdx] = element
+            if ("MedKit" in element._1) {
+              countMedKit[actor.netGUID] = element._2
+              //println("${actor.netGUID} ${countMedKit[actor.netGUID]}")
+              //println(element)
+            } else if ("FirstAid" in element._1) {
+              countFirstAid[actor.netGUID] = element._2
+              //println("${actor.netGUID} ${countFirstAid[actor.netGUID]}")
+              //println(element)
+            } else if ("PainKiller" in element._1) {
+              countPainKiller[actor.netGUID] = element._2
+              //println("${actor.netGUID} ${countPainKiller[actor.netGUID]}")
+              //println(element)
+            } else if ("EnergyDrink" in element._1) {
+              countEnergyDrink[actor.netGUID] = element._2
+              //println("${actor.netGUID} ${countEnergyDrink[actor.netGUID]}")
+              //println(element)
+            }
+            index = readIntPacked()
+          }
+          return true
         }   
         31 -> {
           val ObserverAuthorityType = readInt(4)

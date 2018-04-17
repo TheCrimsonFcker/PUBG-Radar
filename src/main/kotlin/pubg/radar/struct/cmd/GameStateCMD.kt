@@ -36,6 +36,9 @@ object GameStateCMD: GameListener {
     RemainingTime = 0
     MatchElapsedMinutes = 0
     NumTeams = 0
+    isTeamMatch = false
+    MatchStartType = ""
+    isWarMode = false
   }
   
   var TotalWarningDuration = 0f
@@ -56,6 +59,9 @@ object GameStateCMD: GameListener {
   var NumAlivePlayers = 0
   var NumAliveTeams = 0
   var NumTeams = 0
+  var isTeamMatch = false
+  var MatchStartType = ""
+  var isWarMode = false
 
   fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
     with(bunch) {
@@ -84,7 +90,6 @@ object GameStateCMD: GameListener {
           val ElapsedTime = propertyInt()
           val b = ElapsedTime
           //println("21 $b")
-
         }
         22 -> {
           val MatchId = propertyString()
@@ -120,10 +125,9 @@ object GameStateCMD: GameListener {
         32 -> {
           val bCanShowLastCircleMark = propertyBool()
         }
-        32 -> {
+        33 -> {
           val bCanKillerSpectate = propertyBool()
         }
-
         34 -> {
           NumJoinPlayers = propertyInt()
         }
@@ -191,29 +195,55 @@ object GameStateCMD: GameListener {
           //println("47 $ElapsedWarningDuration")
         }
         51 -> {
-          val bIsGasRelease = propertyBool()
+          val result = propertyFloat()
+          println("GameStateCMD 51: $result")
         }
         52 -> {
-          val bIsTeamMatch = propertyBool()
-          val b = bIsTeamMatch
+          val bIsGasRelease = propertyBool()
         }
         53 -> {
-          val bIsZombieMode = propertyBool()
+          val bIsTeamMatch = propertyBool()
+          val isTeamMatch = bIsTeamMatch
+          //println("GameStateCMD 53: $b")
         }
         54 -> {
-          val bUseXboxUnauthorizedDevice = propertyBool()
+          val bIsZombieMode = propertyBool()
+          println("GameStateCMD 54: $bIsZombieMode")
         }
         55 -> {
+          val bUseXboxUnauthorizedDevice = propertyBool()
+        }
+        56 -> {
           val pos = propertyVector()
           SafetyZoneBeginPosition.set(pos.x, pos.y)
         }
-        56 -> {
+        57 -> {
           SafetyZoneBeginRadius = propertyFloat()
         }
-        57 -> {
-          val MatchStartType = propertyByte()
+        58 -> {
+          val result = propertyByte()
+          MatchStartType = result.toString()
+          println("GameStateCMD 58: ${MatchStartType}")
         }
-        58 -> return false
+        59 -> {
+          val bShowAircraftRoute = propertyBool()
+          println("GameStateCMD 59: $bShowAircraftRoute")
+        }
+        60 -> {
+          val bIsWarMode = propertyBool()
+          isWarMode = bIsWarMode
+          println("GameStateCMD 60: $bIsWarMode")
+        }
+        61 -> {
+          val result = propertyBool()
+          //isWarMode = bIsWarMode
+          println("GameStateCMD 61: $result")
+        }
+        62 -> {
+          //val result = propertyBool()
+          //isWarMode = bIsWarMode
+          //println("GameStateCMD 62: $result")
+        }
         else -> return false
       }
       return true

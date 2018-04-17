@@ -99,6 +99,7 @@ class Item {
           c = sub as Map<String, Any>
         }
       } catch (e: Exception) {
+        println("struct\\Item error")
       }
       return null
     }
