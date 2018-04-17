@@ -1,6 +1,6 @@
 Bluehole encrypted packets after 3.7.19.
 
-I will not provide decryption method in this fork.(Because no devs upload any "ready to work" source code right now, and it's not me figured out how to decrypt, I just copy and paste from Internet.) I only update some features and UI staffs here.
+I will not provide decryption method in this fork, __this is not a "Ready to work" source code.__ I only update some features and UI staffs here.(It's not me figured out how to decrypt, I just copy and paste from Internet.)
 
 
 # About
