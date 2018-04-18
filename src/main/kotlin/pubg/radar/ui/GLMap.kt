@@ -133,6 +133,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
   lateinit var shapeRenderer: ShapeRenderer
   lateinit var mapErangelTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
   lateinit var mapMiramarTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
+  lateinit var mapSavageTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
   lateinit var mapTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
   lateinit var hud_panel: Texture
   lateinit var hud_panel_blank: Texture
@@ -153,6 +154,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
   lateinit var alarmSound: Sound
   
   val tileZooms = listOf("256", "512", "1024", "2048", "4096", "8192")
+  //val tileRowCounts = if (mapSelector == "Savage") listOf(1, 1, 2, 4, 8, 16) else listOf(1, 2, 4, 8, 16, 32)
   val tileRowCounts = listOf(1, 2, 4, 8, 16, 32)
   val tileSizes = listOf(819200f, 409600f, 204800f, 102400f, 51200f, 25600f)
   
@@ -391,18 +393,22 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     bg_compass = Texture(Gdx.files.internal("images/bg_compass.png"))
     mapErangelTiles = mutableMapOf()
     mapMiramarTiles = mutableMapOf()
+    mapSavageTiles = mutableMapOf()
     var cur = 0
     tileZooms.forEach{
         mapErangelTiles.set(it, mutableMapOf())
         mapMiramarTiles.set(it, mutableMapOf())
+        mapSavageTiles.set(it, mutableMapOf())
         for (i in 1..tileRowCounts[cur]) {
             val y = if (i < 10) "0$i" else "$i"
             mapErangelTiles[it]?.set(y, mutableMapOf())
             mapMiramarTiles[it]?.set(y, mutableMapOf())
+            mapSavageTiles[it]?.set(y, mutableMapOf())
             for (j in 1..tileRowCounts[cur]) {
                 val x = if (j < 10) "0$j" else "$j"
                 mapErangelTiles[it]!![y]?.set(x, Texture(Gdx.files.internal("tiles/Erangel/${it}/${it}_${y}_${x}.png")))
                 mapMiramarTiles[it]!![y]?.set(x, Texture(Gdx.files.internal("tiles/Miramar/${it}/${it}_${y}_${x}.png")))
+                mapSavageTiles[it]!![y]?.set(x, Texture(Gdx.files.internal("tiles/Savage/${it}/${it}_${y}_${x}.png")))
             }
         }
         cur++
@@ -454,7 +460,11 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     Gdx.gl.glClearColor(0.417f, 0.417f, 0.417f, 0f)
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
     if (gameStarted)
-      mapTiles = if (isErangel) mapErangelTiles else mapMiramarTiles
+      mapTiles = when {
+        mapSelector == "Erangel" -> mapErangelTiles
+        mapSelector == "Miramar" -> mapMiramarTiles
+        else -> mapSavageTiles
+      }  
     else
       return
     val currentTime = System.currentTimeMillis()
@@ -489,7 +499,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
     val (brX, brY) = Vector2(windowWidth, windowHeight).windowToMap()
     var tileZoom = tileZooms[useScale]
     var tileRowCount = tileRowCounts[useScale]
-    var tileSize = tileSizes[useScale]
+    var tileSize = if (mapSelector == "Savage") tileSizes[useScale] / 2 else tileSizes[useScale]
     paint(camera.combined) {
       val xMin = (tlX.toInt() / tileSize.toInt()).coerceIn(1, tileRowCount)
       val xMax = ((brX.toInt() + tileSize.toInt()) / tileSize.toInt()).coerceIn(1, tileRowCount)
@@ -501,9 +511,14 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
           val x = if (j < 10) "0$j" else "$j"
           val tileStartX = (j-1)*tileSize
           val tileStartY = (i-1)*tileSize
-          draw(mapTiles[tileZoom]!![y]!![x], tileStartX, tileStartY, tileSize, tileSize,
-           0, 0, 256, 256,
-            false, true)
+          if (mapSelector == "Savage")
+            draw(mapTiles[tileZoom]!![y]!![x], tileStartX - 50 * j, tileStartY - 50 * i, tileSize, tileSize,
+             0, 0, 128, 128,
+              false, true)
+          else 
+            draw(mapTiles[tileZoom]!![y]!![x], tileStartX, tileStartY, tileSize, tileSize,
+             0, 0, 256, 256,
+              false, true)
         }
       }
     }
@@ -633,8 +648,8 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       color = redZoneColor
       circle(RedZonePosition, RedZoneRadius, 100)
       
-      color = visionColor
-      circle(selfX, selfY, visionRadius, 100)
+      //color = visionColor
+      //circle(selfX, selfY, visionRadius, 100)
       
       //color = pinColor
       //circle(pinLocation, pinRadius * zoom, 10)
@@ -1932,6 +1947,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
                 val x = if (j < 10) "0$j" else "$j"
                 mapErangelTiles[it]!![y]!![x]!!.dispose()
                 mapMiramarTiles[it]!![y]!![x]!!.dispose()
+                mapSavageTiles[it]!![y]!![x]!!.dispose()
                 mapTiles[it]!![y]!![x]!!.dispose()
             }
         }

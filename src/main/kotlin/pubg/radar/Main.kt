@@ -10,7 +10,8 @@ const val mapWidth = 819200f
 const val mapWidthCropped = 8192
 
 var gameStarted = false
-var isErangel = true
+//var isErangel = true
+var mapSelector = "Erangel"
 
 interface GameListener {
   fun onGameStart() {}

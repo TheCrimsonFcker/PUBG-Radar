@@ -49,6 +49,10 @@ Mouse Middle Button | Center on player or Quick zoom-in/out |
 
 # Changelog 
 
+__20180419__
+* Added Savage map.
+* Fixed the offset on Savage map.
+
 __20180417__
 * Updated Miramar map to 3.7.28.
 * Updated data struct to 3.7.28.

@@ -196,7 +196,7 @@ object GameStateCMD: GameListener {
         }
         51 -> {
           val result = propertyFloat()
-          println("GameStateCMD 51: $result")
+          //println("GameStateCMD 51: $result")
         }
         52 -> {
           val bIsGasRelease = propertyBool()
