@@ -8,7 +8,7 @@ Big thanks to [@AiYinZiLeGong](https://github.com/AiYinZiLeGong) [@Jerry1211](ht
 
 I'm not a prof. programmer, just a noob learns to code. I even don't know the difference between _val_ and _var_. So feel free to optimize my shitty code.
 
-And this is a personal programme based on my usage habit, so I don't have the ability to solve all your problems or requests. But you can get help from [here](https://github.com/AiYinZiLeGong/PUBG-Radar/issues).
+And this is a very personal programme based on my usage habit, so I don't have the ability to solve all your problems or requests. But you can get help from [here](https://github.com/AiYinZiLeGong/PUBG-Radar/issues).
 
 <br />
 
@@ -59,7 +59,7 @@ __20180417__
 * Added Solo/Team mode check in ```RetrievePlayerInfo.kt```.
 * Press ```0``` to show enemy's name.
 * Press ```=``` to show enemy's med item number.
-* Fixed safe circle count down.
+* Fixed circle count down.
 * Added a indicator to show how many enemies' info we obtained.
 * Added a indicator to show how many players are spectating you.
 * Automatically hide death box in War mode.
@@ -67,7 +67,7 @@ __20180417__
 * Automatically hide player's stats if he is down.
 * Colored enemy's healthbar in gray if he is down.
 
-__20180315__
+__20180415__
 * Updated to compatible with latest game version 3.7.27.
 * Automaticlly filter Lv.2 gears on map when you have it.
 
