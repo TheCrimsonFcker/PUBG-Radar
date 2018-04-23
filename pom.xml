@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pubg</groupId>
-    <artifactId>radar-unknown</artifactId>
+    <artifactId>radar</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -116,7 +116,6 @@
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
