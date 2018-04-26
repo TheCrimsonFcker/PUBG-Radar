@@ -660,7 +660,11 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
       if (MatchStartType != "241")
         drawCorpse()
       // DRAW SELF
-      drawPlayer(GREEN, tuple4(null, selfX, selfY, selfDirection))
+      val selfSpectatedCount = spectatedCount[selfStateID] ?: 0
+      if (selfSpectatedCount > 0)
+        drawPlayer(Color(0.2f, 0.8f, 0.6f, 1f), tuple4(null, selfX, selfY, selfDirection))
+      else
+        drawPlayer(GREEN, tuple4(null, selfX, selfY, selfDirection))
       // drawPlayer(GREEN, tuple4(null, selfX, selfY, selfDir.angle()))
       //println("Head ${playerHead[selfStateID]}")
       //println("Armor ${playerArmor[selfStateID]}")
@@ -1321,7 +1325,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         } else if (playerIsGroggying == false) {
           if (completedPlayerInfo.containsKey(name)) { // HACKER CHECK
             val info = completedPlayerInfo[name]!!
-            if (!isTeamMate(actor) && (info.killDeathRatio > 2.5f || info.headshotKillRatio > 0.3f)) {
+            if (!isTeamMate(actor) && (info.isHacker)) {
               val hackerInfo = "${(info.headshotKillRatio*100).d(0)}% ${info.killDeathRatio.d(1)}"
               layout.setText(nameFont, hackerInfo)
               val widthHackerInfo = layout.width

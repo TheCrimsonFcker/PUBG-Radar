@@ -203,8 +203,10 @@ object GameStateCMD: GameListener {
         }
         53 -> {
           val bIsTeamMatch = propertyBool()
-          val isTeamMatch = bIsTeamMatch
+          //val isTeamMatch = bIsTeamMatch
           //println("GameStateCMD 53: $b")
+          isTeamMatch = bIsTeamMatch
+          println("TeamMatch: $isTeamMatch")
         }
         54 -> {
           val bIsZombieMode = propertyBool()

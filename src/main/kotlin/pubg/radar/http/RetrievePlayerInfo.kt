@@ -26,7 +26,8 @@ object HTMLParser {
 
 data class PlayerInfo(
     val killDeathRatio: Float,
-    val headshotKillRatio: Float)
+    val headshotKillRatio: Float,
+    val isHacker: Boolean)
 
 class PlayerProfile {
   companion object: GameListener {
@@ -94,7 +95,7 @@ class PlayerProfile {
     fun search(name: String): PlayerInfo? {
       if (name == null) {
         println("name null")
-        return PlayerInfo(0f, 0f)
+        return PlayerInfo(0f, 0f, false)
       } else {
         try {          
           val url = URL("https://pubg.op.gg/user/$name")
@@ -102,7 +103,7 @@ class PlayerProfile {
           val elements = HTMLParser.getUserID(html)
           if (elements == "") {
             println("$name get no ID.")
-            return PlayerInfo(0f, 0f)
+            return PlayerInfo(0f, 0f, false)
           }
           var strList:List<String> = elements.split("\"")
           val userID = strList[5]
@@ -126,6 +127,7 @@ class PlayerProfile {
                   val urlKRJPInfo = URL("https://pubg.op.gg/api/users/$userID/ranked-stats?season=2018-04&server=kr&queue_size=$queue_size&mode=tpp")
                   elementsInfo = urlKRJPInfo.readText()
                 } catch (e: Exception ) {
+                  println("op.gg Error: $name Mode: $queue_size")
                 }
               }
             }
@@ -142,16 +144,18 @@ class PlayerProfile {
           val deaths_sum = ((strListInfo[4].split(","))[0]).toFloat()
 
           if (headshot_kills_sum < 10f) {
-            return PlayerInfo(0f, 0f)
+            return PlayerInfo(0f, 0f, false)
+          } else if (headshot_kills_sum / deaths_sum > 0.55f) {
+            return PlayerInfo((kills_sum / deaths_sum), (headshot_kills_sum / kills_sum), true)
           } else {
-            return PlayerInfo((kills_sum / deaths_sum), (headshot_kills_sum / kills_sum))
+            return PlayerInfo((kills_sum / deaths_sum), (headshot_kills_sum / kills_sum), false)
           }
           
         } catch (e: Exception) {
           println("RetrievePlayerInfo Error: $name")
         }
       }
-      return PlayerInfo(0f, 0f)
+      return PlayerInfo(0f, 0f, false)
     }
     
   }
