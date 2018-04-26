@@ -464,7 +464,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         mapSelector == "Erangel" -> mapErangelTiles
         mapSelector == "Miramar" -> mapMiramarTiles
         else -> mapSavageTiles
-      }  
+      }
     else
       return
     val currentTime = System.currentTimeMillis()

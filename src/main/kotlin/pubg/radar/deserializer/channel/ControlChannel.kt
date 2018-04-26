@@ -1,13 +1,9 @@
 package pubg.radar.deserializer.channel
 
+import pubg.radar.*
 import pubg.radar.deserializer.CHTYPE_CONTROL
 import pubg.radar.deserializer.NMT_Hello
 import pubg.radar.deserializer.NMT_Welcome
-import pubg.radar.haveEncryptionToken
-import pubg.radar.EncryptionToken
-import pubg.radar.gameOver
-import pubg.radar.gameStart
-//import pubg.radar.isErangel
 import pubg.radar.struct.Bunch
 
 class ControlChannel(ChIndex : Int, client : Boolean = true) : Channel(ChIndex, CHTYPE_CONTROL, client)
@@ -35,9 +31,10 @@ class ControlChannel(ChIndex : Int, client : Boolean = true) : Channel(ChIndex, 
         val map = bunch.readString()
         val gameMode = bunch.readString()
         val unknown = bunch.readString()
-        //isErangel = map.contains("erangel", true)
+        isErangel = map.contains("erangel", true)
+        mapSelector = if (isErangel) "Erangel" else "Miramar";
         gameStart()
-        //println("Welcome To ${if (isErangel) "Erangel" else "Miramar"}")
+        println("Welcome To ${if (isErangel) "Erangel" else "Miramar"}")
       }
       else        ->
       {
