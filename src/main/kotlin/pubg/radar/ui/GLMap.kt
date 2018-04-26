@@ -974,7 +974,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
                 "reddot" in items || "holo" in items || "2x" in items -> rare4xColor
                 
                 "k98" in items -> rareSniperColor
-                "m416" in items || "scar" in items || "m16" in items -> rareRifleColor
+                "m416" in items || "scar" in items || "sks" in items -> rareRifleColor
                 "dp28" in items || "ak" in items -> rareRifleColor
                 "FlareGun" in items -> rareFlareColor
 
@@ -1078,7 +1078,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
             rectLine(x - radius/1.4f, y - radius/1.4f,
                      x + radius/1.4f, y + radius/1.4f, radius * 2)
           }
-        } else if ("m16" in items) {
+        } else if ("sks" in items) {
           if (filterWeapon == 1) {
             color = BLACK
             circle(x, y, backgroundRadius * 1.2f, 10)
