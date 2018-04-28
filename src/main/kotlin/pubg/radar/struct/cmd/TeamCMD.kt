@@ -32,81 +32,77 @@ object TeamCMD: GameListener {
           actor.owner = if (netGUID.isValid()) netGUID else null
           bugln { " owner: [$netGUID] $obj ---------> beOwned:$actor" }
         }
-        16 -> {
+        16 -> {//bIsDying
+            val bIsDying = readBit()
+            val a = bIsDying
+        }
+        17 -> {//bIsGroggying
+            val bIsGroggying = readBit()
+            val a = bIsGroggying
+        }
+        18 -> {//BoostGauge
+          val BoostGauge = readFloat()
+          val a = BoostGauge
+        }
+        19 -> {//bQuitter
+          val bQuitter = readBit()
+          val a = bQuitter
+        }
+        20 -> {//bShowMapMarker
+          val bShowMapMarker = readBit()
+          teamShowMapMarker[actor.netGUID] = bShowMapMarker
+          //println("TeamCMD: ${actor.netGUID}: $bShowMapMarker")
+        }
+        21 -> {//bUsingSquadInTeam
+          val bUsingSquadInTeam = propertyBool()
+        }
+        22 -> {//GroggyHealth
+          val GroggyHealth = readUInt8()
+          val a = GroggyHealth
+        }
+        23 -> {//GroggyHealthMax
+          val GroggyHealthMax = readUInt8()
+          val a = GroggyHealthMax
+        }
+        24 -> {//Health
+          val health = readUInt8()
+          val a = health
+        }
+        25 -> {//HealthMax
+          val HealthMax = readUInt8()
+          val a = HealthMax
+        }
+        26 -> {//MapMarkerPosition
+          val MapMarkerPosition = readVector2D()
+          teamMapMarkerPosition[actor.netGUID] = MapMarkerPosition
+          //println("TeamCMD: ${actor.netGUID}: ${teamMapMarkerPosition[actor.netGUID]}")
+        }
+        27 -> {//MemberNumber
+          val MemberNumber = readInt8()
+          teamMemberNumber[actor.netGUID] = MemberNumber
+          //println("TeamCMD: ${actor.netGUID}: $MemberNumber")
+        }
+        28 -> {
           val playerLocation = propertyVector100()
         }
-        17 -> {
-          val playerRotation = readRotationShort()
-        }
-        18 -> {
+        29 -> {
           val playerName = propertyString()
           team[playerName] = playerName
         }
-        19   ->
-        {//Health
-           val health = readUInt8()
-           val a = health
+        30 -> {
+          val playerRotation = readRotationShort()
         }
-        20   ->
-        {//HealthMax
-           val HealthMax = readUInt8()
-           val a = HealthMax
+        31 -> {//SquadIndex
+          val SquadIndex = readInt8()
         }
-        21   ->
-        {//GroggyHealth
-           val GroggyHealth = readUInt8()
-           val a = GroggyHealth
+        32 -> {//SquadMemberIndex
+          val SquadMemberIndex = readInt8()
         }
-        22   ->
-        {//GroggyHealthMax
-           val GroggyHealthMax = readUInt8()
-           val a = GroggyHealthMax
-        }
-        23   ->
-        {//MapMarkerPosition
-           val MapMarkerPosition = readVector2D()
-           teamMapMarkerPosition[actor.netGUID] = MapMarkerPosition
-           //println("TeamCMD: ${actor.netGUID}: ${teamMapMarkerPosition[actor.netGUID]}")
-        }
-        24   ->
-        {//bIsDying
-           val bIsDying = readBit()
-           val a = bIsDying
-        }
-        25   ->
-        {//bIsGroggying
-           val bIsGroggying = readBit()
-           val a = bIsGroggying
-        }
-        26   ->
-        {//bQuitter
-           val bQuitter = readBit()
-           val a = bQuitter
-        }
-        27   ->
-        {//bShowMapMarker
-           val bShowMapMarker = readBit()
-           teamShowMapMarker[actor.netGUID] = bShowMapMarker
-           //println("TeamCMD: ${actor.netGUID}: $bShowMapMarker")
-        }
-        28   ->
-        {//TeamVehicleType
-           val TeamVehicleType = readInt(3)
+        33 -> {//TeamVehicleType
+           val TeamVehicleType = readInt(7)
            val a = TeamVehicleType
         }
-        29   ->
-        {//BoostGauge
-           val BoostGauge = readFloat()
-           val a = BoostGauge
-        }
-        30   ->
-        {//MemberNumber
-           val MemberNumber = readInt8()
-           teamMemberNumber[actor.netGUID] = MemberNumber
-           //println("TeamCMD: ${actor.netGUID}: $MemberNumber")
-        }
-        31   ->
-        {//UniqueId
+        34 -> {//UniqueId
            val UniqueId = readString()
            val a = UniqueId
         }

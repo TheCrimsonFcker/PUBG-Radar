@@ -75,6 +75,7 @@ import pubg.radar.util.tuple4
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
+import kotlin.printStackTrace
 
 typealias renderInfo = tuple4<Actor, Float, Float, Float>
 
@@ -1668,7 +1669,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
         }
         rectLine(x - width / 2, positonY, x - width / 2 + healthWidth, positonY, height)
       } catch (e: Exception) { 
-        println("drawHealthbar error")
+        //println("drawHealthbar error")
       }
 
       try {
@@ -1725,7 +1726,7 @@ class GLMap: InputAdapter(), ApplicationListener, GameListener {
           circle(x, y, playerRadius, 10)
         }
       } catch (e: Exception) { 
-        println("drawPlayer error")
+        //println("drawPlayer error")
         color = BLACK
         circle(x, y, backgroundRadius, 10)
         color = pColor

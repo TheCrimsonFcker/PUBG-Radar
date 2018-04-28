@@ -10,7 +10,7 @@ enum class LogLevel {
   Info
 }
 
-var logLevel = Off
+var logLevel = Bug
 
 inline fun info(info: () -> String) {
   if (logLevel.ordinal >= Info.ordinal)

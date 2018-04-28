@@ -18,20 +18,20 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
     init {
       register(this)
     }
-    
+
     val actors = ConcurrentHashMap<NetworkGUID, Actor>()
     val visualActors = ConcurrentHashMap<NetworkGUID, Actor>()
     val airDropLocation = ConcurrentHashMap<NetworkGUID, Vector3>()
     val droppedItemToItem = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
     val droppedItemGroup = ConcurrentHashMap<NetworkGUID, ArrayList<NetworkGUID>>()
-    val droppedItemCompToItem = ConcurrentHashMap<NetworkGUID, NetworkGUID>()    
+    val droppedItemCompToItem = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
     val droppedItemLocation = ConcurrentHashMap<NetworkGUID, tuple2<Vector2, String>>()
     val corpseLocation = ConcurrentHashMap<NetworkGUID, Vector3>()
     val actorHasWeapons = ConcurrentHashMap<NetworkGUID, IntArray>()
     val weapons = ConcurrentHashMap<Int, Actor>()
     // val itemBag=ConcurrentHashMap<NetworkGUID,IntArray>>()
 
-    
+
     override fun onGameOver() {
       actors.clear()
       visualActors.clear()
@@ -45,9 +45,9 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
       actorHasWeapons.clear()
     }
   }
-  
+
   var actor: Actor? = null
-  
+
   override fun ReceivedBunch(bunch: Bunch) {
     if (client && bunch.bHasMustBeMappedGUIDs) {
       val NumMustBeMappedGUIDs = bunch.readUInt16()
@@ -57,7 +57,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
     }
     ProcessBunch(bunch)
   }
-  
+
   fun ProcessBunch(bunch: Bunch) {
     if (client && actor == null) {
       if (!bunch.bOpen) {
@@ -72,11 +72,11 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
       val clientChannel = inChannels[chIndex] ?: return
       actor = (clientChannel as ActorChannel).actor
       if (actor == null) return
-    }    
+    }
     val actor = actor!!
     if (actor.Type == DroppedItem && bunch.bitsLeft() == 0)
       droppedItemLocation.remove(droppedItemToItem[actor.netGUID] ?: return)
-      
+
     while (bunch.notEnd()) {
       //header
       val bHasRepLayout = bunch.readBit()
@@ -111,7 +111,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             guidCache.registerNetGUID_Client(netguid, subobj)
             repObj = guidCache.getObjectFromNetGUID(netguid)
           }
-        
+
         }
       }
       val NumPayloadBits = bunch.readIntPacked()
@@ -123,7 +123,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
         continue
       try {
         val outPayload = bunch.deepCopy(NumPayloadBits)
-        
+
         info { ",${if (bHasRepLayout) "hasRepLayout" else "noRepLayout"},actor[${actor.netGUID.value}]archetype=${actor.archetype}" }
         if (bHasRepLayout) {
           if (!client)// Server shouldn't receive properties.
@@ -142,7 +142,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
               CharacterMoveComp(outPayload)
             }
           }
-        }        
+        }
       } catch (e: Exception) {
         //println("ActorChannel error")
       }
@@ -150,7 +150,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
     }
     infoln { "" }
   }
-  
+
   fun SerializeActor(bunch: Bunch) {
     val (netGUID, newActor) = bunch.readObject()//NetGUID
     if (netGUID.isDynamic()) {
@@ -163,20 +163,20 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
           bugln { "Unresolved Archetype GUID. Guid not registered!, NetGUID: $archetypeNetGUID" }
       }
       val bSerializeLocation = bunch.readBit()
-      
+
       val Location = if (bSerializeLocation)
         bunch.readVector()
       else
         Vector3.Zero
       val bSerializeRotation = bunch.readBit()
       val Rotation = if (bSerializeRotation) bunch.readRotationShort() else Vector3.Zero
-      
+
       val bSerializeScale = bunch.readBit()
       val Scale = if (bSerializeScale) bunch.readVector() else Vector3.Zero
-      
+
       val bSerializeVelocity = bunch.readBit()
       val Velocity = if (bSerializeVelocity) bunch.readVector() else Vector3.Zero
-      
+
       if (actor == null && archetype != null) {
         val _actor = Actor(netGUID, archetypeNetGUID, archetype, chIndex)
         with(_actor) {
@@ -204,9 +204,9 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
       actor = Actor(netGUID, newActor.outerGUID, newActor, chIndex)
       actor!!.isStatic = true
     }
-    
+
   }
-  
+
   override fun close() {
     if (actor != null) {
       if (client) {
@@ -216,6 +216,5 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
       actor = null
     }
   }
-  
-}
 
+}

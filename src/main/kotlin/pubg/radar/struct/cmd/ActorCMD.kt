@@ -58,30 +58,40 @@ object ActorCMD: GameListener {
   fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
     with(bunch) {
       when (waitingHandle) {
-        1 -> if (readBit()) {//bHidden
+        1 -> propertyObject()
+        2 -> propertyObject()
+        3 -> propertyName()
+        4 -> propertyVector100()
+        5 -> propertyVector100()
+        6 -> readRotationShort()
+        7 -> {
+          val bCanBeDamaged = readBit()
+          //println("bCanBeDamaged=$bCanBeDamaged")
+        }
+        8 -> if (readBit()) {//bHidden
           visualActors.remove(actor.netGUID)
           bugln { ",bHidden id$actor" }
         }
-        2 -> if (!readBit()) {// bReplicateMovement
+        9 -> if (!readBit()) {// bReplicateMovement
           if (!actor.isVehicle) {
             visualActors.remove(actor.netGUID)
           }
           bugln { ",!bReplicateMovement id$actor " }
         }
-        3 -> if (readBit()) {//bTearOff
+        10 -> if (readBit()) {//bTearOff
           visualActors.remove(actor.netGUID)
           bugln { ",bTearOff id$actor" }
         }
-        4 -> {
-          val role = readInt(ROLE_MAX)
-          val b = role
+        11 -> {
+          val (instigatorGUID, instigator) = propertyObject()
         }
-        5 -> {
+        12 -> {
           val (netGUID, obj) = readObject()
           actor.owner = if (netGUID.isValid()) netGUID else null
           bugln { " owner: [$netGUID] $obj ---------> beOwned:$actor" }
         }
-        6 -> {
+        13 -> readInt(ROLE_MAX)
+        14 -> {
           repMovement(actor)
           with(actor) {
             when (Type) {
@@ -92,139 +102,62 @@ object ActorCMD: GameListener {
             }
           }
         }
-        7 -> {
-          val (a, obj) = readObject()
-          val attachTo = if (a.isValid()) {
-            actors[a]?.attachChildren?.put(actor.netGUID, actor.netGUID)
-            a
-          } else null
-          if (actor.attachParent != null)
-            actors[actor.attachParent!!]?.attachChildren?.remove(actor.netGUID)
-          actor.attachParent = attachTo
-          if (actor.netGUID == selfID) {
-            selfAttachTo = if (attachTo != null)
-              actors[actor.attachParent!!]
-            else
-              null
-          }          
-          bugln { ",attachTo [$actor---------> $a ${guidCache.getObjectFromNetGUID(a)} ${actors[a]}" }
+        15 -> {
+          val role = readInt(ROLE_MAX)
+          val b = role
         }
-        8 -> {
-          val locationOffset = propertyVector100()
-          if (actor.Type == DroopedItemGroup) {
-            bugln { "${actor.location} locationOffset $locationOffset" }
-          }
-          bugln { ",attachLocation $actor ----------> $locationOffset" }
-        }
-        9 -> propertyVector100()
-        10 -> readRotationShort()
-        11 -> {
-          val attachSocket = propertyName()
-        }
-        12 -> {
-          val (attachComponnent, attachName) = bunch.readObject()
-        }
-        13 -> {
-          readInt(ROLE_MAX)
-        }
-        14 -> propertyBool()
-        15 -> propertyObject()
+
+        //APawn
         16 -> {
+          val (controllerGUID, controller) = propertyObject()
+        }
+        17 -> {
           val (playerStateGUID, playerState) = propertyObject()
           if (playerStateGUID.isValid()) {
             actorWithPlayerState[actor.netGUID] = playerStateGUID
             playerStateToActor[playerStateGUID] = actor.netGUID
           }
         }
-        17 -> {//RemoteViewPitch 2
-          val result = readUInt16() * shortRotationScale//pitch
-        }
-        18 -> {
-          val result = propertyObject()
-        }
+        18 -> readUInt16() * shortRotationScale//RemoteViewPitch
+
       //ACharacter
-        19 -> {
-          val result = propertyObject()
+        19 -> propertyFloat()
+        20 -> propertyBool()
+        21 -> propertyInt()
+        22 -> propertyFloat()
+
+        //Struct FBasedMovementInfo ReplicatedBasedMovement
+        23 -> propertyName()
+        24 -> propertyBool()
+        25 -> propertyBool()
+        26 -> propertyBool()
+        27 -> propertyVector100()
+        28 -> propertyObject()
+        29 -> readRotationShort()
+
+        30 -> readUInt8()
+        31 -> propertyFloat()
+
+        //struct FRepRootMotionMontage RepRootMotion;
+        32 -> propertyVector10()
+        33 -> propertyObject()
+        34 -> {//player
+          val bHasAdditiveSources = propertyBool();
+          val bHasOverridesources = propertyBool();
+          val LastPreAdditiveVelocity = propertyVector10(); //FVector_NetQuantize10
+          val IsAdditiveVelocityApplied = propertyBool();
+          val LastAccumulatedSettingsFlags = readUInt8(); //struct ENGINE_API FRootMotionSourceSettings
         }
-        20 -> {
-          val result = propertyName()
-        }
-        21 -> {
-          val result = propertyVector100()
-        }
-        22 -> {
-          val Rotation = readRotationShort()
-        }//propertyRotator()
-        23 -> {
-          val result = propertyBool()
-        }
-        24 -> {
-          val result = propertyBool()
-        }
-        25 -> {
-          val result = propertyBool()
-        }
-        26 -> {
-          val result = propertyFloat()
-        }
-        27 -> {
-          val ReplicatedServerLastTransformUpdateTimeStamp = propertyFloat()
-        }
-        28 -> {
-          val result = propertyByte()
-        }
-        29 -> {
-          val result = propertyBool()
-        }
-        30 -> {
-          val result = propertyFloat()
-        }
-        31 -> {
-          val result = propertyInt()
-        }
-      //struct FRepRootMotionMontage RepRootMotion;
-        32 -> {
-          val result = propertyBool()
-        }
-        33 -> {
-          val result = propertyObject()
-        }
-        34 -> {
-          val result = propertyFloat()
-        }
-        35 -> {
-          val result = propertyVector100()
-        }
-        36 -> {
-          val result = readRotationShort()
-        }//propertyRotator()
-        37 -> {
-          val result = propertyObject()
-        }
-        38 -> {
-          val result = propertyName()
-        }
-        39 -> {
-          val result = propertyBool()
-        }
-        40 -> {
-          val result = propertyBool()
-        }
-        41 -> {//player
-          val bHasAdditiveSources = readBit()
-          val bHasOverrideSources = readBit()
-          val lastPreAdditiveVelocity = propertyVector10()
-          val bIsAdditiveVelocityApplied = readBit()
-          val flags = readUInt8()
-        }
-        42 -> {
-          val Acceleration = propertyVector10()
-          val b = Acceleration
-        }
-        43 -> {
-          val LinearVelocity = propertyVector10()
-          val b = LinearVelocity
-        }
+        35 -> propertyBool()
+        36 -> propertyBool()
+        37 -> propertyBool()
+        38 -> propertyVector10()
+        39 -> propertyVector100()
+        40 -> propertyObject()
+        41 -> propertyName()
+        42 -> propertyFloat()
+        43 -> readRotationShort()
+
       //AMutableCharacter
         44 -> {
           val arrayNum = readUInt16()
@@ -234,236 +167,87 @@ object ActorCMD: GameListener {
             index = readIntPacked()
           }
         }
+
       //ATslCharacter
-        45 -> {
-          val remote_CastAnim = readInt(8)
-        }
-        46 -> {
-          val CurrentWeaponZoomLevel = propertyByte()
-          val b = CurrentWeaponZoomLevel
-        }
-        47 -> {
-          val BuffFinalSpreadFactor = propertyFloat()
-          val b = BuffFinalSpreadFactor
-        }
-        48 -> {
-          val InventoryFacade = propertyObject()
-          val b = InventoryFacade
-        }
-        49 -> {
-          val WeaponProcessor = propertyObject()
-          val b = WeaponProcessor
-        }
-        50 -> {
-          val CharacterState = propertyByte()
-        }
-        51 -> {
-          val bIsScopingRemote = propertyBool()
-        }
+        45 -> propertyVectorNormal()
+        46 -> propertyBool()
+        47 -> propertyBool()
+        48 -> propertyBool()
+        49 -> propertyBool()
+        50 -> propertyBool()
+        51 -> propertyBool()
         52 -> {
-          val bIsAimingRemote = propertyBool()
-        }
-        53 -> {
-          val bIsFirstPersonRemote = propertyBool()
-        }
-        54 -> {
-          val bIsInVehicleRemote = propertyBool()
-        }
-        55 -> {
-          val result = propertyInt()
-          spectatedCount[actor.netGUID] = result
-        }
-        56 -> {
-          val (id, team) = propertyObject()
-        }
-        57 -> {
-          val ActualDamage = propertyFloat()
-        }
-        58 -> {
-          val damageType = propertyObject()
-        }
-        59 -> {
-          val PlayerInstigator = propertyObject()
-        }
-        60 -> {
-          val DamageOrigin = propertyVectorQ()
-        }
-        61 -> {
-          val RelHitLocation = propertyVectorQ()
-        }
-        62 -> {
-          val result = propertyName()
-          val b = result
-        }
-        63 -> {
-          val DamageMaxRadius = propertyFloat()
-        }
-        64 -> {
-          val ShotDirPitch = propertyByte()
-        }
-        65 -> {
-          val ShotDirYaw = propertyByte()
-        }
-        66 -> {
-          val result = propertyBool()
-        }
-        67 -> {
-          val result = propertyBool()
-        }
-        68 -> {
-          val bKilled = propertyBool()
-        }
-        69 -> {
-          val EnsureReplicationByte = propertyByte()
-        }
-        70 -> {
-          val AttackerWeaponName = propertyName()
-        }
-        71 -> {
-          val AttackerLocation = propertyVector()
-        }
-        72 -> {
-          val TargetingType = readInt(3)
-          val a = TargetingType
-        }
-        73 -> {
-          val result = propertyFloat()
-          //reviveCastingTime[actor.netGUID] = result
-          //println("73: ${actor.netGUID} $result")
-        }
-        74 -> {
-          val result = propertyBool()
-          val b = result
-          //println("74: ${actor.netGUID} $result")
-        }
-        75 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        76 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        77 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        78 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        79 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        80 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        81 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        82 -> {
           val result = propertyBool()
           //println("82: ${actor.netGUID} $result")
           isGroggying[actor.netGUID] = result
         }
-        83 -> {
-          val result = propertyBool()
-          //println("83: ${actor.netGUID} $result")
-        }
-        84 -> {
+        53 -> propertyBool()
+        54 -> propertyBool()
+        55 -> propertyBool()
+        56 -> propertyBool()
+        57 -> {
           isReviving[actor.netGUID] = propertyBool()
           //println("84: ${actor.netGUID} $bIsThirdPerson")
         }
-        85 -> {
-          val result = propertyBool()
-          //println("85: ${actor.netGUID} $result")
-        }
-        86 -> {
-          val bIsCoatEquipped = propertyBool()
-        }
-        87 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        88 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        89 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        90 -> {
-          val result = readRotationShort()//propertyRotator()
-          val b = result
-        }
-        91 -> {
-          val AimOffsets = propertyVectorNormal()
-          val b = AimOffsets
-        }
-        92 -> {
-          val result = readObject()
-          val b = result
-        }
-        93 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        94 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        95 -> {
-          val health = propertyFloat()
-          actorHealth[actor.netGUID] = health
-        }
-        96 -> {
-          val healthMax = propertyFloat()
-        }
-        97 -> {
+        58 -> propertyBool()
+        59 -> propertyBool()
+        60 -> propertyBool()
+        61 -> propertyBool()
+        62 -> propertyBool()
+        63 -> propertyFloat()
+        64 -> propertyFloat()
+        65 -> propertyBool()
+        66 -> propertyFloat()
+        67 -> propertyBool()
+        68 -> propertyBool()
+        69 -> propertyBool()
+        70 -> propertyBool()
+        71 -> propertyBool()
+        72 -> propertyBool()
+        73 -> propertyBool()
+        74 -> readUInt8()
+        75 -> readUInt8()
+        76 -> {
           val GroggyHealth = propertyFloat()
           actorGroggyHealth[actor.netGUID] = GroggyHealth
         }
-        98 -> {
-          val GroggyHealthMax = propertyFloat()
+        77 -> propertyFloat()
+        78 -> readRotationShort()
+        79 -> {
+          val health = propertyFloat()
+          actorHealth[actor.netGUID] = health
         }
-        99 -> {
-          val BoostGauge = propertyFloat()
-        }
-        100 -> {
-          val BoostGaugeMax = propertyFloat()
-        }
-        101 -> {
-          val ShoesSoundType = readInt(8)
-          val b = ShoesSoundType
-        }
-        102 -> {
-          val result = readObject()
-          val b = result
-        }
+        80 -> propertyFloat()
+        81 -> propertyBool()
+        82 -> propertyObject()
+        83 -> propertyFloat()
+        84 -> propertyVector()
+        85 -> propertyName()
+        86 -> propertyBool()
+        87 -> propertyName()
+        88 -> propertyBool()
+        89 -> propertyBool()
+        90 -> propertyFloat()
+        91 -> propertyVectorQ()
+        92 -> propertyObject()
+        93 -> readUInt8()
+        94 -> propertyObject()
+        95 -> propertyVectorQ()
+        96 -> readUInt8()
+        97 -> readUInt8()
+        98 -> propertyObject()
+        99 -> readInt(4)
+        100 -> readInt(8)
+        101 -> propertyFloat()
+        102 -> readInt(8)
         103 -> {
-          val result = propertyBool()
-          val b = result
+          val result = propertyInt()
+          spectatedCount[actor.netGUID] = result
         }
-        104 -> {
-          val result = readInt(4)
-          val b = result
-        }
-        105 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        106 -> {
-          val result = propertyBool()
-          val b = result
-        }
-        107 -> {
-          val result = propertyBool()
-          val b = result
-        }
+        104 -> readInt(4)
+        105 -> propertyObject()
+        106 -> propertyObject()
+        107 -> propertyObject()
         else -> return false
       }
       return true

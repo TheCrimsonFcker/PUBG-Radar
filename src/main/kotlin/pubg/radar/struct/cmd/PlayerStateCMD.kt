@@ -7,6 +7,7 @@ import pubg.radar.struct.cmd.CMD.propertyBool
 import pubg.radar.struct.cmd.CMD.propertyByte
 import pubg.radar.struct.cmd.CMD.propertyFloat
 import pubg.radar.struct.cmd.CMD.propertyInt
+import pubg.radar.struct.cmd.CMD.propertyUInt32
 import pubg.radar.struct.cmd.CMD.propertyNetId
 import pubg.radar.struct.cmd.CMD.propertyObject
 import pubg.radar.struct.cmd.CMD.propertyString
@@ -59,64 +60,91 @@ object PlayerStateCMD: GameListener {
       //item_dbg {"$actor"}
       //item_dbg {""}
       when (waitingHandle) {
-        1 -> {
+        1 -> {//1: AttachmentReplication_AttachParent = Object
+          val (AttachParent, _) = propertyObject()
+        }
+        2 -> {//2: AttachmentReplication_LocationOffset = Vector(100, 30)
+          val LocationOffset = propertyVector100()
+        }
+        3 -> {//3: AttachmentReplication_RelativeScale3D = Vector(100, 30)
+          val RelativeScale3d = propertyVector100()
+        }
+        4 -> {//4: AttachmentReplication_RotationOffset = Rotation
+          val RotationOffset = readRotationShort()
+        }
+        5 -> {//5: AttachmentReplication_AttachSocket = Name
+          val AttachSocket = readName()
+        }
+        6 -> {//6: AttachmentReplication_AttachComponent = Object
+          val (AttachComponent, _) = propertyObject()
+        }
+        7 -> {
+          val bCanBeDamaged = readBit()
+          //println("bCanBeDamaged=$bCanBeDamaged")
+        }
+        8 -> {
           val bHidden = readBit()
 //          println("bHidden=$bHidden")
         }
-        2 -> {
+        9 -> {
           val bReplicateMovement = readBit()
 //          println("bHidden=$bReplicateMovement")
         }
-        3 -> {
+        10 -> {
           val bTearOff = readBit()
 //          println("bHidden=$bTearOff")
         }
-        4 -> {
-          val role = readInt(ROLE_MAX)
+        11 -> {
+          val (instigatorGUID, instigator) = propertyObject()
         }
-        5 -> {
+        12 -> {
           val (ownerGUID, owner) = propertyObject()
         }
-        7 -> {
-          val (a, obj) = readObject()
-        }
         13 -> {
-          readInt(ROLE_MAX)
+          val remoteRole = readInt(ROLE_MAX)
+          //readInt(ROLE_MAX)
+        }
+        /*14 -> {//Struct FRepMovement ReplicatedMovement
+          repMovement(actor)
+          playerDictionary[actor.netGUID] = actor;
+        }*/
+        15 -> {
+          val role = readInt(ROLE_MAX)
         }
         16 -> {
-          val score = propertyFloat()  //2969 Engine classes
+          val bFromPreviousLevel = propertyBool()
+//        println("${actor.netGUID} bFromPreviousLevel=$bFromPreviousLevel")
         }
         17 -> {
-          val ping = propertyByte()
+          val isABot = propertyBool()
+//        println("${actor.netGUID} isABot=$isABot")
         }
         18 -> {
+          val bIsInactive = propertyBool()
+//        println("${actor.netGUID} bIsInactive=$bIsInactive")
+        }
+        19 -> {
+          val bIsSpectator = propertyBool()
+//        println("${actor.netGUID} bIsSpectator=$bIsSpectator")
+        }
+        20 -> {
+          val bOnlySpectator = propertyBool()
+//        println("${actor.netGUID} bOnlySpectator=$bOnlySpectator")
+        }
+        21 -> {
+          val ping = propertyByte()
+        }
+        22 -> {
+          val playerID = propertyInt()
+//          println("${actor.netGUID} playerID=$playerID")
+        }
+        23 -> {
           val name = propertyString()
           playerNames[actor.netGUID] = name
 //          println("${actor.netGUID} playerID=$name")
         }
-        19 -> {
-          val playerID = propertyInt()
-//          println("${actor.netGUID} playerID=$playerID")
-        }
-        20 -> {
-          val bIsSpectator = propertyBool()
-//        println("${actor.netGUID} bIsSpectator=$bIsSpectator")
-        }
-        21 -> {
-          val bOnlySpectator = propertyBool()
-//        println("${actor.netGUID} bOnlySpectator=$bOnlySpectator")
-        }
-        22 -> {
-          val isABot = propertyBool()
-//        println("${actor.netGUID} isABot=$isABot")
-        }
-        23 -> {
-          val bIsInactive = propertyBool()
-//        println("${actor.netGUID} bIsInactive=$bIsInactive")
-        }
         24 -> {
-          val bFromPreviousLevel = propertyBool()
-//        println("${actor.netGUID} bFromPreviousLevel=$bFromPreviousLevel")
+          val score = propertyFloat()  //2969 Engine classes
         }
         25 -> {
           val StartTime = propertyInt()
@@ -127,19 +155,24 @@ object PlayerStateCMD: GameListener {
           uniqueIds[uniqueId] = actor.netGUID
 //        println("${playerNames[actor.netGUID]}${actor.netGUID} uniqueId=$uniqueId")
         }
-        27 -> {//indicate player's death
-          val Ranking = propertyInt()
-//        println("${playerNames[actor.netGUID]}${actor.netGUID} Ranking=$Ranking")
-        }
-        28 -> {
+        27 -> {
           val AccountId = propertyString()
 //        println("${actor.netGUID} AccountId=$AccountId")
         }
-        29 -> {
-          val ReportToken = propertyString()
-//        println("${actor.netGUID} ReportToken=$ReportToken")
+        28 -> {//bIsInAircraft
+          val bIsInAircraft = propertyBool()
+//          println("${playerNames[actor.netGUID]}${actor.netGUID} bIsInAircraft=$bIsInAircraft")
         }
-        30 -> { // EmoteBitArray
+        29 -> {
+          val bIsZombie = propertyBool()
+//          println("${playerNames[actor.netGUID]}${actor.netGUID}bIsZombie=$bIsZombie")
+        }
+        30 -> {
+          val currentAttackerPlayerNetId = propertyString()
+          attacks.add(Pair(uniqueIds[currentAttackerPlayerNetId]!!, actor.netGUID))
+//          println("${playerNames[actor.netGUID]}${actor.netGUID} currentAttackerPlayerNetId=$currentAttackerPlayerNetId")
+        }
+        31 -> { // EmoteBitArray
           val arraySize = readUInt16()
           castableItems.resize(arraySize)
           var index = readIntPacked()
@@ -155,7 +188,7 @@ object PlayerStateCMD: GameListener {
                 val (guid, castableItemClass) = readObject()
                 if (castableItemClass != null)
                   element._1 = simplify(castableItemClass.pathName)
-                  //println(element._1)
+                //println(element._1)
               }
               1 -> {
                 val ItemType = readInt(8)
@@ -187,60 +220,65 @@ object PlayerStateCMD: GameListener {
             index = readIntPacked()
           }
           return true
-        }   
-        31 -> {
-          val ObserverAuthorityType = readInt(4)
-//        println("${playerNames[actor.netGUID]}${actor.netGUID} ObserverAuthorityType=$ObserverAuthorityType")
         }
-        32 -> {
-          val teamNumber = readInt(100)
-          teamNumbers[actor.netGUID] = teamNumber
-//        println("${playerNames[actor.netGUID]}${actor.netGUID} TeamNumber=$teamNumber")
+        32 -> {//LastHitTime
+          val lastHitTime = propertyFloat()
+//          println("${playerNames[actor.netGUID]}${actor.netGUID} lastHitTime=$lastHitTime")
         }
-        33 -> {
-          val bIsZombie = propertyBool()
-//          println("${playerNames[actor.netGUID]}${actor.netGUID}bIsZombie=$bIsZombie")
+        33 -> {//MyGameScoreInTeam
+          val scoreInTeam = propertyInt()
         }
         34 -> {
+          val ObserverAuthorityType = readInt(5)
+//        println("${playerNames[actor.netGUID]}${actor.netGUID} ObserverAuthorityType=$ObserverAuthorityType")
+        }
+        35 -> {//PlayerScores_ScoreByDamage
           val scoreByDamage = propertyFloat()
 //          println("${playerNames[actor.netGUID]}${actor.netGUID} scoreByDamage=$scoreByDamage")
         }
-        35 -> {
+        36 -> {//PlayerScores_ScoreByKill
           val ScoreByKill = propertyFloat()
 //          println("${playerNames[actor.netGUID]}${actor.netGUID} ScoreByKill=$ScoreByKill")
         }
-        36 -> {
+        37 -> {//PlayerScores_ScoreByRanking
           val ScoreByRanking = propertyFloat()
 //          println("${playerNames[actor.netGUID]}${actor.netGUID} ScoreByRanking=$ScoreByRanking")
         }
-        37 -> {
+        38 -> {//PlayerScores_ScoreFactor
           val ScoreFactor = propertyFloat()
 //          println("${playerNames[actor.netGUID]}${actor.netGUID} ScoreFactor=$ScoreFactor")
         }
-        38 -> {
+        39 -> {//PlayerStatistics_NumKills
           val NumKills = propertyInt()
+          //val NumKills = propertyInt()
           playerNumKills[actor.netGUID] = NumKills
           //println("${playerNames[actor.netGUID]}${actor.netGUID} NumKills=$NumKills")
         }
-        39 -> {
-          val TotalMovedDistanceMeter = propertyFloat()
-          selfStateID = actor.netGUID//only self will get this update
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} TotalMovedDistanceMeter=$TotalMovedDistanceMeter")
-        }
-        40 -> {
-          val TotalGivenDamages = propertyFloat()
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} TotalGivenDamages=$TotalGivenDamages")
+        40 -> {//PlayerStatistics_NumKills
+          val HeadShots = propertyUInt32()
+          //val HeadShots = propertyInt()
+          //playerHeadshots[actor.netGUID] = HeadShots
+          //println("${playerNames[actor.netGUID]}${actor.netGUID} HeadShots=$HeadShots")
         }
         41 -> {
           val LongestDistanceKill = propertyFloat()
 //          println("${playerNames[actor.netGUID]}${actor.netGUID} LongestDistanceKill=$LongestDistanceKill")
         }
         42 -> {
-          val HeadShots = propertyInt()
-          //playerHeadshots[actor.netGUID] = HeadShots
-          //println("${playerNames[actor.netGUID]}${actor.netGUID} HeadShots=$HeadShots")
+          val TotalGivenDamages = propertyFloat()
+//          println("${playerNames[actor.netGUID]}${actor.netGUID} TotalGivenDamages=$TotalGivenDamages")
         }
-        43 -> {//ReplicatedEquipableItems
+        43 -> {
+          val TotalMovedDistanceMeter = propertyFloat()
+          selfStateID = actor.netGUID//only self will get this update
+//          println("${playerNames[actor.netGUID]}${actor.netGUID} TotalMovedDistanceMeter=$TotalMovedDistanceMeter")
+        }
+        44 -> {//indicate player's death
+          val Ranking = propertyInt()
+//        println("${playerNames[actor.netGUID]}${actor.netGUID} Ranking=$Ranking")
+        }
+        //45: ReplicatedCastableItems = TArray(FReplicatedCastableItem)
+        46 -> {//ReplicatedEquipableItems
           val arraySize = readUInt16()
           equipableItems.resize(arraySize)
           var index = readIntPacked()
@@ -291,18 +329,15 @@ object PlayerStateCMD: GameListener {
           }
           return true
         }
-        44 -> {//bIsInAircraft
-          val bIsInAircraft = propertyBool()
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} bIsInAircraft=$bIsInAircraft")
-        }        
-        45 -> {//LastHitTime
-          val lastHitTime = propertyFloat()
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} lastHitTime=$lastHitTime")
+        47 -> {
+          val ReportToken = propertyString()
+//        println("${actor.netGUID} ReportToken=$ReportToken")
         }
-        46 -> {
-          val currentAttackerPlayerNetId = propertyString()
-          attacks.add(Pair(uniqueIds[currentAttackerPlayerNetId]!!, actor.netGUID))
-//          println("${playerNames[actor.netGUID]}${actor.netGUID} currentAttackerPlayerNetId=$currentAttackerPlayerNetId")   
+        48 -> {
+          val teamNumber = propertyInt()
+          //val teamNumber = readInt(100)
+          teamNumbers[actor.netGUID] = teamNumber
+//        println("${playerNames[actor.netGUID]}${actor.netGUID} TeamNumber=$teamNumber")
         }
         else -> return false
       }

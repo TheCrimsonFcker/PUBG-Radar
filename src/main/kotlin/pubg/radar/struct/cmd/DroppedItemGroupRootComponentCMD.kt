@@ -9,6 +9,9 @@ object DroppedItemGroupRootComponentCMD {
   fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
     with(bunch) {
       when (waitingHandle) {
+        3 -> {
+          (actor)
+        }
         4 -> {
           val arraySize = readUInt16()
           val comps = droppedItemGroup[actor.netGUID] ?: ArrayList(arraySize)
